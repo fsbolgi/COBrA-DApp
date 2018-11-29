@@ -1,0 +1,13 @@
+.clickable-row {
+    cursor: pointer;
+}
+
+.glyphicon-star {
+    font-size: 18px;
+    color: #ffad33;
+}
+
+.glyphicon-star-empty {
+    font-size: 18px;
+    color:  #ffad33;
+}
