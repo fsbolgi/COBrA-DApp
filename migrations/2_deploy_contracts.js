@@ -87,7 +87,6 @@ module.exports = function (deployer) {
   function doSomeViews() {
     catalogInstance.GetContent(t1, { from: accounts[4], value: ps });
     content1.ConsumeContent({ from: accounts[4] });
-    content1.LeaveRate(3, 5, 4, 4, { from: accounts[4] })
     return content1.feed(2);
   }
 

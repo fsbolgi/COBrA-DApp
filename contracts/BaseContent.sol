@@ -40,20 +40,20 @@ contract BaseContent {
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Only the owner of the content can cal this function");
         _;
     }
     modifier byCatalog() {
-        require(msg.sender == catalog);
+        require(msg.sender == catalog, "Only the catalog can call this function");
         _;
     }
     modifier byAuthorized() {
-        require(authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number);
+        require(authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number, "The user must purchase the content first");
         _;
     }
 
     modifier byConsumer() {
-        require(has_consumed[msg.sender]);
+        require(has_consumed[msg.sender], "The user must consume the content before leaving a feedback");
         _;
     }
     
@@ -95,19 +95,18 @@ contract BaseContent {
             if (view_count % v == 0) {
                 emit v_reached (view_count - views_already_payed);
             }
-            delete authorized_std[msg.sender] ;
+            delete authorized_std[msg.sender];
         } else {
-            delete authorized_premium[msg.sender] ;
+            delete authorized_premium[msg.sender];
         }
         emit content_consumed (msg.sender);
     }
 
     /* authorized customers can consume the content */
-    function LeaveRate ( uint32 f0, uint32 f1, uint32 f2, uint32 f3) external byConsumer {
-        feed[0] = feed[0] + f0;
-        feed[1] = feed[1] + f1;
-        feed[2] = feed[2] + f2;
-        feed[3] = feed[3] + f3;
+    function LeaveRate ( uint32[] f ) external byConsumer {
+        for (uint32 i = 0; i < 4; i++) {
+            feed[i] = feed[i] + f[i];
+        }
         nVotes ++;
         delete has_consumed[msg.sender];
         emit rate_left (msg.sender);

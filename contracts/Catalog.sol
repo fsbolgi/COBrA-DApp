@@ -187,12 +187,17 @@ contract Catalog{
     
     /* returns the content with highest rating for feedback category _y 
     (or highest average of all ratings if y is not specified) */
-    function GetMostRated (uint32 _y) public view returns (bytes32){
+    function GetMostRated (uint _y) public view returns (bytes32){
         bytes32 most_rated = 0;
         uint32 highest_rating = 0;
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
-            uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc);
+            uint32 r;
+            if (_y < 4) {
+                r = bc.feed(_y) / bc.nVotes();
+            } else {
+                r = GetRate(bc);
+            } 
             if (r > highest_rating) {
                 most_rated = bc.title();
                 highest_rating = r;
