@@ -32,8 +32,11 @@ module.exports = function (deployer) {
     var l = await addContentsToCat();
     console.log("############ ADD CONTENTS " + l);
 
-    var stats = await doSomeViews();
-    console.log("############ DO SOME VIEWS " + stats);
+    await doSomeViews();
+    console.log("############ DO SOME VIEWS " + await catalogInstance.GetMostPopularByAuthor(a1));
+
+    await leaveRating();
+    console.log("############ LEAVE SOME VOTE " + await catalogInstance.GetMostRated(10));
   })
 
   function createParameters() {
@@ -58,7 +61,7 @@ module.exports = function (deployer) {
 
     // create prices
     ps = 30000000000000000;
-    pm = 150000000000000000;
+    pm = 9000000000000000;
     pp = 8500000000000000;
     po = 42000000000000000;
   }
@@ -85,9 +88,33 @@ module.exports = function (deployer) {
   }
 
   function doSomeViews() {
-    catalogInstance.GetContent(t1, { from: accounts[4], value: ps });
-    content1.ConsumeContent({ from: accounts[4] });
-    return content1.feed(2);
+    var titles = [t1, t1, t2, t2, t2, t2, t2, t3, t3, t4, t4, t4, t5, t5, t5, t5, t6];
+    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5],
+    accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4]];
+    var prices = [ps, ps, pm, pm, pm, pm, pm, pp, pp, ps, ps, ps, po, po, po, po, pp];
+    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
+      content5, content5, content5, content5, content6];
+    for (var j = 0; j < 17; j++) {
+      catalogInstance.GetContent(titles[j], { from: acc[j], value: prices[j] });
+      conts[j].ConsumeContent({ from: acc[j] });
+    }
   }
 
+  function leaveRating() {
+    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5],
+    accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4]];
+    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
+      content5, content5, content5, content5, content6];
+    for (var j = 0; j < 17; j++) {
+      var rates;
+      for (var i = 0; i < 4; i++) {
+        if (j % 3 == 0) {
+          rates = [Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1)];
+        } else {
+          rates = [Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3)];
+        }
+      }
+      conts[j].LeaveRate(rates, { from: acc[j] });
+    }
+  }
 }

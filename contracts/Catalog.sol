@@ -47,7 +47,6 @@ contract Catalog{
     function GetLengthCatalog () public view returns (uint) {
         return contents_list.length;
     }
- 
 
     /* returns the author of a content */
     function GetAuthor(bytes32 _t) public view returns (bytes32) {
@@ -74,11 +73,29 @@ contract Catalog{
     }
     
     /* returns the price of a content */
-    function getPrice (bytes32 _t) public view returns (uint32){
+    function GetPrice (bytes32 _t) public view returns (uint){
         uint i = position_content[_t];
         if (i != 0) {
             return contents_list[i-1].price();
         }
+    }
+
+    /* returns the number of views of a content */
+    function GetViews (bytes32 _t) public view returns (uint32){
+        uint i = position_content[_t];
+        if (i != 0) {
+            return contents_list[i-1].view_count();
+        }
+    }
+
+    /* returns the average rating for a content */ 
+    function GetRate (bytes32 _t) public view returns (uint32) {
+        uint i = position_content[_t];
+        uint32 s = 0;
+        for(uint32 j = 0; j < 4; j++){
+            s += contents_list[i-1].feed(j);
+        }
+        return (s / (contents_list[i-1].nVotes() * 4));
     }
     
     
@@ -176,31 +193,19 @@ contract Catalog{
         return most_popular;
     }
     
-    /* returns the average rating for a content */ 
-    function GetRate (BaseContent _b) private view returns (uint32) {
-        uint32 s = 0;
-        for(uint32 i = 0; i < 4; i++){
-            s += _b.feed(i);
-        }
-        return (s / (_b.nVotes() * 4));
-    }
-    
     /* returns the content with highest rating for feedback category _y 
     (or highest average of all ratings if y is not specified) */
-    function GetMostRated (uint _y) public view returns (bytes32){
+    function GetMostRated (uint32 _y) public view returns (bytes32){
         bytes32 most_rated = 0;
         uint32 highest_rating = 0;
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
-            uint32 r;
-            if (_y < 4) {
-                r = bc.feed(_y) / bc.nVotes();
-            } else {
-                r = GetRate(bc);
-            } 
-            if (r > highest_rating) {
-                most_rated = bc.title();
-                highest_rating = r;
+            if (bc.nVotes() != 0 ) {
+                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
+                if (r > highest_rating) {
+                    most_rated = bc.title();
+                    highest_rating = r;
+                }
             }
         }
         return most_rated;
@@ -212,10 +217,11 @@ contract Catalog{
         bytes32 most_rated = 0;
         uint32 highest_rating = 0;
         for (uint i = 0; i < contents_list.length; i++) {
-            if (contents_list[i].genre() == _g) {
-                uint32 r = (_y < 4)? (contents_list[i].feed(_y) / contents_list[i].nVotes()) : GetRate(contents_list[i]);
+            BaseContent bc = contents_list[i];
+            if (bc.genre() == _g && bc.nVotes() != 0 ) {
+                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
-                    most_rated = contents_list[i].title();
+                    most_rated = bc.title();
                     highest_rating = r;
                 }
             }
@@ -229,10 +235,11 @@ contract Catalog{
         bytes32 most_rated = 0;
         uint32 highest_rating = 0;
         for (uint i = 0; i < contents_list.length; i++) {
-            if (contents_list[i].author() == _a) {
-                uint32 r = (_y < 4)? (contents_list[i].feed(_y) / contents_list[i].nVotes()) : GetRate(contents_list[i]);
+            BaseContent bc = contents_list[i];
+            if (bc.author() == _a && bc.nVotes() != 0 ) {
+                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
-                    most_rated = contents_list[i].title();
+                    most_rated = bc.title();
                     highest_rating = r;
                 }
             }
@@ -264,8 +271,8 @@ contract Catalog{
     
     /* pays to access content _t */
     function GetContent (bytes32 _t) external payable {
-        require(msg.value >= getPrice(_t));
-        uint change = msg.value - getPrice(_t);
+        require(msg.value >= GetPrice(_t));
+        uint change = msg.value - GetPrice(_t);
         if (change > 0) {
             msg.sender.transfer(change);
             emit change_given (msg.sender, change);
@@ -289,8 +296,8 @@ contract Catalog{
     
     /* pays for granting access to content _t to the user _u */
     function GiftContent  (bytes32 _t, address _u) external payable {
-        require(msg.value >= getPrice(_t));
-        uint change = msg.value - getPrice(_t);
+        require(msg.value >= GetPrice(_t));
+        uint change = msg.value - GetPrice(_t);
         if (change > 0) {
             msg.sender.transfer(change);
             emit change_given (msg.sender, change);

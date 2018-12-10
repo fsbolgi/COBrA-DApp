@@ -14,7 +14,7 @@ contract BaseContent {
     bytes32 public author; // name of the author
     bytes32 public genre; // indicates the type {song, video, photo}
     bytes32 public subgenre;
-    uint32 public price; // the price to consume the content
+    uint public price; // the price to consume the content
     uint32 public view_count; // number of views
     uint32 public views_already_payed; // number of viewsalready payed by the catalog
     
@@ -40,25 +40,25 @@ contract BaseContent {
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
-        require(msg.sender == owner, "Only the owner of the content can cal this function");
+        require(msg.sender == owner);
         _;
     }
     modifier byCatalog() {
-        require(msg.sender == catalog, "Only the catalog can call this function");
+        require(msg.sender == catalog);
         _;
     }
     modifier byAuthorized() {
-        require(authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number, "The user must purchase the content first");
+        require(authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number);
         _;
     }
 
     modifier byConsumer() {
-        require(has_consumed[msg.sender], "The user must consume the content before leaving a feedback");
+        require(has_consumed[msg.sender]);
         _;
     }
     
     /* constructor function of the content manager */
-    constructor (address _catalog, bytes32 _title, bytes32 _author, bytes32 _gen, uint32 _price) public {
+    constructor (address _catalog, bytes32 _title, bytes32 _author, bytes32 _gen, uint _price) public {
         owner = msg.sender;
         content_address = this;
         catalog = _catalog;
@@ -99,6 +99,7 @@ contract BaseContent {
         } else {
             delete authorized_premium[msg.sender];
         }
+        has_consumed[msg.sender] = true;
         emit content_consumed (msg.sender);
     }
 

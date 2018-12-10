@@ -31,20 +31,28 @@ App = {
     });
   },
 
-  initContents: function () {
-    $.getJSON("BaseContent.json", function (baseContent) {
-      // Instantiate a new truffle contract from the artifact
+  initContents: async function () {
+    await Promise.all([$.getJSON("BaseContent.json", function (baseContent) {
       App.contracts.BaseContent = TruffleContract(baseContent);
-      // Connect provider to interact with contract
       App.contracts.BaseContent.setProvider(App.web3Provider);
-
-      return App.render();
-    });
+    }),
+    $.getJSON("SongContent.json", function (songContent) {
+      App.contracts.SongContent = TruffleContract(songContent);
+      App.contracts.SongContent.setProvider(App.web3Provider);
+    }),
+    $.getJSON("MovieContent.json", function (movieContent) {
+      App.contracts.MovieContent = TruffleContract(movieContent);
+      App.contracts.MovieContent.setProvider(App.web3Provider);
+    }),
+    $.getJSON("PhotoContent.json", function (photoContent) {
+      App.contracts.PhotoContent = TruffleContract(photoContent);
+      App.contracts.PhotoContent.setProvider(App.web3Provider);
+    })]);
+    return App.render();
   },
 
   render: function () {
     var catalogInstance;
-    var contentInstance;
 
     // Load account data
     web3.eth.getCoinbase(function (err, account) {
@@ -54,49 +62,31 @@ App = {
       }
     });
 
-    var title;
-    var author;
-    var genre;
-    var price;
-
     // Load contract data
     App.contracts.Catalog.deployed().then(function (instance) {
-      catalogInstance = instance;
-      return catalogInstance.GetLengthCatalog();
-    }).then(function (lengthCatalog) {
-      var catalogList = $("#catalog-list");
-      App.contracts.BaseContent.deployed().then(function (instance) {
-        contentInstance = instance;
-        return contentInstance.title();
-      }).then(function (t) {
-        title = t;
-        return contentInstance.author();
-      }).then(function (a) {
-        author = a;
-        return contentInstance.genre();
-      }).then(function (g) {
-        genre = g;
-        return contentInstance.price();
-      }).then(function (p) {
-        price = p;
-        var row = "<tr class=\"clickable-row\" data-href=\"content_page.html\"><th scope=\"row\">4</th>\
-        <td>"+web3.toAscii(title)+"</td><td>"+web3.toAscii(author)+"</td><td><span class=\"glyphicon glyphicon-film\"></span> "+web3.toAscii(genre)+"</td>\
-        <td>"+price+" wei</td><td>0</td><td><span class=\"glyphicon glyphicon-star-empty\"></span> \
-          <span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon glyphicon-star-empty\"></span> \
-          <span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon glyphicon-star-empty\"></span>\
-        </td></tr>";
+      catalogInstance = instance;      
+      return catalogInstance.GetContentList();
+    }).then(async function (ll) {
+      const promises = ll.map(async function (t, ix) {
+        var a, g, p, v, r;
+        [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t), 
+        catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+        catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
+        var row = "<tr class=\"clickable-row\" data-href=\"content_page.html\"><th scope=\"row\">"+(ix+1)+"</th>\
+        <td>"+web3.toAscii(t)+"</td><td>"+web3.toAscii(a)+"</td><td><span class=\"glyphicon glyphicon-film\"\
+        ></span> "+web3.toAscii(g)+"</td><td>"+p+" wei</td><td>"+v+"</td><td><span class=\"glyphicon glyphicon-star\
+        -empty\"></span><span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon glyphicon\
+        -star-empty\"></span><span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon \
+        glyphicon-star-empty\"></span></td></tr>";
         $("#catalog-rows").append(row);
-        return catalogInstance.GetContentList();
-      }).then( function (list) {
-        console.log(list);
       });
-    }).catch(function (error) {
-      console.warn(error);
-    });
+      await Promise.all(promises);
+      });
   }
+
 };
 
-$(".clickable-row").click(function() {
+$(".clickable-row").click(function () {
   console.log("here");
   //window.location = $(this).data("href");
 });
@@ -106,3 +96,4 @@ $(function () {
     App.init();
   });
 });
+
