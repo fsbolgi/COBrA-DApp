@@ -64,24 +64,48 @@ App = {
 
     // Load contract data
     App.contracts.Catalog.deployed().then(function (instance) {
-      catalogInstance = instance;      
+      catalogInstance = instance;
       return catalogInstance.GetContentList();
     }).then(async function (ll) {
       const promises = ll.map(async function (t, ix) {
         var a, g, p, v, r;
-        [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t), 
+        [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
         catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
         catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
-        var row = "<tr class=\"clickable-row\" data-href=\"content_page.html\"><th scope=\"row\">"+(ix+1)+"</th>\
-        <td>"+web3.toAscii(t)+"</td><td>"+web3.toAscii(a)+"</td><td><span class=\"glyphicon glyphicon-film\"\
-        ></span> "+web3.toAscii(g)+"</td><td>"+p+" wei</td><td>"+v+"</td><td><span class=\"glyphicon glyphicon-star\
-        -empty\"></span><span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon glyphicon\
-        -star-empty\"></span><span class=\"glyphicon glyphicon-star-empty\"></span> <span class=\"glyphicon \
-        glyphicon-star-empty\"></span></td></tr>";
+        var genreIcon = await getIcon(g);
+        var rateStars = await drawStars(r);
+        var row = "<tr class=\"clickable-row\" data-href=\"content_page.html\"><th scope=\"row\">" + (ix + 1) + "</th>\
+        <td>"+ web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "</td><td><span class=\"glyphicon " + genreIcon + "\"\
+        ></span> "+ web3.toAscii(g) + "</td><td>" + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
         $("#catalog-rows").append(row);
       });
       await Promise.all(promises);
-      });
+    });
+
+    function getIcon(g) {
+      var icon;
+      if (g == 0x536f6e6700000000000000000000000000000000000000000000000000000000) {
+        icon = "glyphicon-music";
+      } else if (g == 0x50686f746f000000000000000000000000000000000000000000000000000000) {
+        icon = "glyphicon-picture";
+      } else if (g == 0x4d6f766965000000000000000000000000000000000000000000000000000000) {
+        icon = "glyphicon-film";
+      } else {
+        icon = "glyphicon-file";
+      }
+      return icon;
+    }
+
+    function drawStars(r) {
+      var stars = "";
+      for (var i = 0; i < r; i++) {
+        stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
+      }
+      for (var i = r; i < 5; i++) {
+        stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
+      }
+      return stars;
+    }
   }
 
 };

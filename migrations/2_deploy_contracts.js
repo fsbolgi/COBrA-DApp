@@ -56,8 +56,8 @@ module.exports = function (deployer) {
     a5 = web3.fromAscii("Agatha Christie");
 
     // create genres
-    g1 = web3.fromAscii("Song");
-    g2 = web3.fromAscii("Other");
+    g1 = web3.fromAscii("Other");
+    g2 = web3.fromAscii("Song");
 
     // create prices
     ps = 30000000000000000;
@@ -108,10 +108,10 @@ module.exports = function (deployer) {
     for (var j = 0; j < 17; j++) {
       var rates;
       for (var i = 0; i < 4; i++) {
-        if (j % 3 == 0) {
-          rates = [Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1), Math.floor(Math.random() * (4 - 1) + 1)];
+        if (j % 4 == 0) {
+          rates = [Math.floor(Math.random() * 3 + 1), Math.floor(Math.random() * 3 + 1), Math.floor(Math.random() * 3 + 1), Math.floor(Math.random() * 3 + 1)];
         } else {
-          rates = [Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3), Math.floor(Math.random() * (6 - 3) + 3)];
+          rates = [Math.floor(Math.random() * 2 + 4), Math.floor(Math.random() * 2 + 4), Math.floor(Math.random() * 2 + 4), Math.floor(Math.random() * 2 + 4)];
         }
       }
       conts[j].LeaveRate(rates, { from: acc[j] });

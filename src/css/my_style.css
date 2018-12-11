@@ -11,3 +11,25 @@
     font-size: 18px;
     color:  #ffad33;
 }
+
+.navbar-brand {
+    cursor: default;
+    font-size:26px;
+}
+
+.navbar-brand b {
+    color: #FFFFFF;
+}
+
+.option-place-holder{
+    font-size: 27px;
+    color: red;
+}
+
+#__bs_notify__ {
+    top:92% !important;
+    right: 12px !important;
+    border-radius: 5px !important;
+    height:45px !important;
+ }
+
