@@ -25,7 +25,7 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
-          <li CLASS="active"><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
+          <li class="active"><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
           <li><a href="author_page.html">AUTHOR <span class="glyphicon glyphicon-upload"></span></a></li>
           <li><a href="premium_page.html">PREMIUM <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
         </ul>
@@ -51,35 +51,85 @@
         </tr>
       </thead>
       <tbody id="catalog-rows">
-        <!--<tr class="clickable-row" data-href="content_page.html">
-          <th scope="row">1</th>
-          <td>-----Harry Potter</td>
-          <td>J.K. Rowling</td>
-          <td><span class="glyphicon glyphicon-film"></span> Movie</td>
-          <td>0.001 eth</td>
-          <td>100</td>
-          <td>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-            <span class="glyphicon glyphicon-star"></span>
-          </td>
-        </tr>-->
       </tbody>
     </table>
   </div>
 
 
-  <div class="container">
-    <button type="button" class="btn btn-danger btn-sm pull-right">
-      DELETE CATALOG
-    </button>
+  <div class="container" id="del_cat_container">
   </div>
 
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    function render() {
+      var catalogInstance;
+
+      App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return catalogInstance.GetContentList();
+      }).then(async function (ll) {
+        const promises = ll.map(async function (t, ix) {
+          var a, g, p, v, r;
+          [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
+          catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+          catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
+          var genreIcon = await getIcon(g);
+          var rateStars = await drawStars(Math.floor(r/10));
+          var loc = "content_page.html?title=" + (ix+1);
+          var urlp = encodeURI(loc);
+          var row = "<tr class=\"clickable-row\"  onclick=\"window.location='"+urlp+"';\" ><th scope=\"row\">" + (ix + 1) + "</th>\
+        <td>"+ web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "</td><td><span class=\"glyphicon " + genreIcon + "\"\
+        ></span> "+ web3.toAscii(g) + "</td><td>" + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
+          $("#catalog-rows").append(row);
+        });
+        await Promise.all(promises);
+      });
+
+      App.contracts.Catalog.deployed().then(function (instance) {
+        return instance.owner();
+      }).then(async function (ow) {
+        if (ow == App.account) {
+          var b = "<button type=\"button\" class=\"btn btn-danger btn-sm \
+          pull-right\" id=\"butt_del_cat\">DELETE CATALOG</button>";
+          $("#del_cat_container").append(b);
+        }
+      });
+
+      function getIcon(g) {
+        var icon;
+        if (g == 0x536f6e6700000000000000000000000000000000000000000000000000000000) {
+          icon = "glyphicon-music";
+        } else if (g == 0x50686f746f000000000000000000000000000000000000000000000000000000) {
+          icon = "glyphicon-picture";
+        } else if (g == 0x4d6f766965000000000000000000000000000000000000000000000000000000) {
+          icon = "glyphicon-film";
+        } else {
+          icon = "glyphicon-file";
+        }
+        return icon;
+      }
+
+      function drawStars(r) {
+        var stars = "";
+        for (var i = 0; i < r; i++) {
+          stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
+        }
+        for (var i = r; i < 5; i++) {
+          stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
+        }
+        return stars;
+      }
+    }
+  </script>
+  <script>
+    $("#del_cat_container").on("click", "#butt_del_cat", function(t) {
+      App.contracts.Catalog.deployed().then(function (instance) {
+        instance.KillCatalog();
+      });
+    });
+  </script>
 </body>
 
 </html>

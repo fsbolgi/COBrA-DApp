@@ -21,36 +21,100 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#"><b>COBrA</b></a>
+        <a class="navbar-brand"><b>COBrA</b></a>
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
-          <li><a href="index.html">Catalog <span class="glyphicon glyphicon-list"></span></a></li>
-          <li><a href="author_page.html">Author <span class="glyphicon glyphicon-upload"></span></a></li>
-          <li><a href="premium_page.html">Premium <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
+          <li><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
+          <li><a href="author_page.html">AUTHOR <span class="glyphicon glyphicon-upload"></span></a></li>
+          <li><a href="premium_page.html">PREMIUM <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="find_page.html">Search <span class="glyphicon glyphicon-search"></span></a></li>
-          <li class="active"><a href="personal_page.html">Personal Area <span class="glyphicon glyphicon-user"></span></a></li>
+          <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
+          <li class="active"><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
         </ul>
       </div>
     </div>
   </nav>
 
-  <div class="container" id="catalog-list">
-
+  <div class="container" id="address_container">
+    <button type="button" id="butt_setting" class="btn pull-right">SETTINGS <span class="glyphicon glyphicon-cog"></span></button>
   </div>
 
+  <div class="container" id="type_account">
+  </div>
 
-  <div class="container">
-    <button type="button" class="btn btn-danger btn-sm">
-      Delete Catalog
-    </button>
+  <div class="container" id="consume_container">
+    <h3>LIST OF CONTENTS YOU CAN CONSUME</h3>
+    <table class="table table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">TITLE</th>
+          <th scope="col">AUTHOR</th>
+          <th scope="col">GENRE</th>
+          <th scope="col">PRICE</th>
+          <th scope="col">VIEWS</th>
+          <th scope="col">RATING</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody id="author-rows">
+      </tbody>
+    </table>
+    <h3>LIST OF CONTENTS YOU HEVE SEEN</h3>
+    <table class="table table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">TITLE</th>
+          <th scope="col">AUTHOR</th>
+          <th scope="col">GENRE</th>
+          <th scope="col">PRICE</th>
+          <th scope="col">VIEWS</th>
+          <th scope="col">RATING</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody id="author-rows">
+      </tbody>
+    </table>
   </div>
 
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
+  <script>
+    function render() {
+      var catalogInstance;
+
+      var this_acc = "<h4>YOUR ADDRESS IS " + App.account + "</h4>";
+      $("#address_container").append(this_acc);
+      App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return catalogInstance.isPremium(App.account);
+      }).then(function (is_p) {
+        var t_a;
+        if (is_p) {
+          catalogInstance.premium_customers(App.account).then(async function (exp) {
+            var bb = await getBlockNumber();
+            t_a = "<h5>Your premium subscription will expire in " + (exp - bb) + " blocks.</h5>";
+            $("#address_container").append(t_a);
+          });
+        } else {
+          t_a = "<h5>You have a standard account, buy premium!</h5>";
+          $("#address_container").append(t_a);
+        }
+
+      });
+
+    }
+  </script>
+  <script>
+    $("#butt_setting").click(function () {
+    });
+  </script>
+
 </body>
 
 </html>

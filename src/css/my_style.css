@@ -1,3 +1,7 @@
+.container {
+    padding: 15px;
+}
+
 .clickable-row {
     cursor: pointer;
 }
@@ -21,10 +25,10 @@
     color: #FFFFFF;
 }
 
-.option-place-holder{
-    font-size: 27px;
-    color: red;
+.genre_option {
+    cursor: pointer;
 }
+
 
 #__bs_notify__ {
     top:92% !important;
@@ -32,4 +36,32 @@
     border-radius: 5px !important;
     height:45px !important;
  }
+
+ .glyphicon-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 8px solid #337ab7;
+    color: #337ab7;
+    display: inline-table;
+    text-align: center;
+  }
+  /**CSS FOR ICON WITH NO BACKGROUND COLOR**/
+  
+.glyphicon-bordered {
+    font-size: 50px;
+    vertical-align: middle;
+    display: table-cell;
+ }
+.container_icon {
+    width: 120px;
+}
+
+.col-sm-2 {
+    padding-top: 20px;
+}
+
+.col-sm-10 {
+    padding-top: 15px;
+}
 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>COBrA</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/my_style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand"><b>COBrA</b></a>
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav">
+                    <li><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
+                    <li><a href="author_page.html">AUTHOR <span class="glyphicon glyphicon-upload"></span></a></li>
+                    <li><a href="premium_page.html">PREMIUM <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" id="title_content">
+    </div>
+
+    <div class="container">
+        <h4>CONTENT INFORMATION</h4>
+        <table class="table">
+            <thead>
+            </thead>
+            <tbody id="table_content">
+            </tbody>
+        </table>
+        <h4>RATING</h4>
+        <table class="table">
+            <thead>
+            </thead>
+            <tbody id="table_rate">
+            </tbody>
+        </table>
+        <h4>CONTRACT INFORMATION</h4>
+        <table class="table">
+            <thead>
+            </thead>
+            <tbody id="table_contract">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-6">
+                <button type="button" class="btn btn-primary butt_buy_content center-block">
+                    BUY CONTENT
+                </button>
+            </div>
+            <div class="col-xs-6">
+                <button type="button" class="btn btn-primary butt_gift_content center-block">
+                    GIFT CONTENT
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        function render() {
+            var url_string = window.location.href;
+            var url = new URL(url_string);
+            var uri_dec = url.searchParams.get("title");
+            var catalogInstance, contentInstance, t, r, a, g, subg, p, v, r1, r2, r3, r4, ca, co;
+
+            App.contracts.Catalog.deployed().then(function (instance) {
+                catalogInstance = instance;
+                return catalogInstance.GetContentList();
+            }).then(async function (ll) {
+                t = ll[uri_dec - 1];
+                var title_name = web3.toUtf8(t);
+                var title_string = "<h3>" + title_name.toUpperCase() + "</h3>";
+                $("#title_content").append(title_string);
+                catalogInstance.GetRate(t).then(function (r) {
+                    var rateStars = drawStars(Math.floor(r / 10));
+                    var rate_score = "<h4>" + rateStars + "" + r / 10 + "</h4>";
+                    $("#title_content").append(rate_score);
+                });
+                var address_co = await catalogInstance.contents_list(uri_dec - 1) + "";
+                App.contracts.SongContent.at(address_co).then(async function (instance) {
+                    contentInstance = instance;
+                    [a, g, subg, p, v, r1, r2, r3, r4, nv, ca, co] = await Promise.all(
+                        [contentInstance.author(), contentInstance.genre(), contentInstance.subgenre(),
+                        contentInstance.price(), contentInstance.view_count(),
+                        contentInstance.feed(0), contentInstance.feed(1),
+                        contentInstance.feed(2), contentInstance.feed(3),
+                        contentInstance.nVotes(), contentInstance.content_address(),
+                        contentInstance.owner() ]);
+
+                    var table = "<tr><td scope=\"row\">AUTHOR</td><td scope=\"row\">" + web3.toAscii(a) + "</td></tr>\
+                <tr><td scope=\"row\">GENRE</td><td scope=\"row\">"+ web3.toAscii(g) + "</td></tr>\
+                <tr><td scope=\"row\">SUBGENRE</td><td scope=\"row\">"+ web3.toAscii(subg) + "</td></tr>\
+                <tr><td scope=\"row\">PRICE</td><td scope=\"row\">"+ p + "</td></tr>\
+                <tr><td scope=\"row\">VIEWS</td><td scope=\"row\">"+ v + "</td></tr>";
+                    $("#table_content").append(table);
+
+                    var table_rate = "<tr><td scope=\"row\">OVERALL</td><td scope=\"row\">\
+                        "+drawStars(Math.floor(r1/nv))+" "+ r1/nv  + "</td></tr>\
+                <tr><td scope=\"row\">QUALITY</td><td scope=\"row\">\
+                    "+drawStars(Math.floor(r2/nv))+" "+ r2/nv  + "</td></tr>\
+                <tr><td scope=\"row\">PRICE FAIRNESS</td><td scope=\"row\">\
+                    "+drawStars(Math.floor(r3/nv))+" "+ r3/nv  + "</td></tr>\
+                <tr><td scope=\"row\">DETAILS PRESENCE</td><td scope=\"row\">\
+                    "+drawStars(Math.floor(r4/nv))+" "+ r4/nv  + "</td></tr>";
+                    $("#table_rate").append(table_rate);
+
+                    var table_contract = "<tr><td scope=\"row\">CONTENT ADDRESS</td><td scope=\"row\">"+ ca + "</td></tr>\
+                <tr><td scope=\"row\">OWNER ADDRESS</td><td scope=\"row\">"+ co + "</td></tr>";
+                    $("#table_contract").append(table_contract);
+                    return instance.title();
+                });
+
+
+
+
+            });
+
+
+            function drawStars(r) {
+                var stars = "";
+                for (var i = 0; i < r; i++) {
+                    stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
+                }
+                for (var i = r; i < 5; i++) {
+                    stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
+                }
+                return stars;
+            }
+
+        }
+    </script>
+</body>
+
+</html>

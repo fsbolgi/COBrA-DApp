@@ -59,7 +59,7 @@
   <div class="container">
     <h3>ADD A NEW CONTENT</h3>
     <p>Insert the informations about the content you want to deploy and add to the catalog:</p>
-    <form>
+    <form class="add_content_form">
       <div class="form-group">
         <label for="title_form">TITLE*</label>
         <input type="text" class="form-control" id="title_form" placeholder="The title of the content">
@@ -68,9 +68,9 @@
         <label for="author_form">AUTHOR*</label>
         <input type="text" class="form-control" id="author_form" placeholder="The author's name">
       </div>
-      <div class="form-group">
+      <div class="form-group" id="genre_field">
         <label for="genre_form">GENRE*</label>
-        <select class="form-control" id="genre_form">
+        <select class="form-control genre_option" id="genre_form">
           <option hidden></option>
           <option>Song</option>
           <option>Movie</option>
@@ -90,13 +90,75 @@
     <p class="text-right">* Required Fields</p>
   </div>
 
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-6">
+        <button type="button" class="btn btn-primary butt_deploy_contract center-block">
+          DEPLOY CONTRACT
+        </button>
+      </div>
+      <div class="col-xs-6">
+        <button type="button" class="btn btn-secondary butt_add_to_catalog center-block" disabled>
+          ADD TO CATALOG
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
   <script>
-    $(".genre_form").click(function () {
-      console.log("here");
-      //window.location = $(this).data("href");
+    var genre_field_present = false;
+
+    $(".genre_option").click(function (g) {
+      if ($("#more_info") != null) {
+        $("#more_info").remove();
+      }
+      var opt_selected = g.target.value;
+      if (opt_selected == "Other") {
+        if (!genre_field_present) {
+          var string_field = "<input type=\"text\" class=\"form-control\" id=\"other_genre_form\"\
+           placeholder=\"A different type of content\">";
+          $("#genre_field").append(string_field);
+          genre_field_present = true;
+        }
+      } else {
+        if ($("#other_genre_form") != null) {
+          $("#other_genre_form").remove();
+          genre_field_present = false;
+        }
+        if (opt_selected == "Song") {
+          var string_field = "<div class=\"form-group\" id=\"more_info\"><label for=\"more_info_form\">\
+              TRACK LENGHT</label><input type=\"text\" class=\"form-control\" id=\"more_info_form\"></div>";
+          $(".add_content_form").append(string_field);
+        } else if (opt_selected == "Movie") {
+          var string_field = "<div class=\"form-group\" id=\"more_info\"><label for=\"more_info_form\">\
+              MOVIE LENGHT</label><input type=\"text\" class=\"form-control\" id=\"more_info_form\"></div>";
+          $(".add_content_form").append(string_field);
+        } else if (opt_selected == "Photo") {
+          var string_field = "<div class=\"form-group\" id=\"more_info\"><label for=\"more_info_form\">\
+              NUMBER OF PIXELS</label><input type=\"text\" class=\"form-control\" id=\"more_info_form\"></div>";
+          $(".add_content_form").append(string_field);
+        }
+      }
+    });
+  </script>
+  <script>
+    $(".butt_deploy_contract").click(function () {
+      /*App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return catalogInstance.GetContentList();
+      }).then(function (a) {
+        console.log(a);
+      });*/
+      $(this).prop("disabled", true);
+      $(".butt_add_to_catalog").prop("disabled", false);
+      $(this).toggleClass('btn-primary btn-secondary');
+      $(".butt_add_to_catalog").toggleClass('btn-primary btn-secondary');
+    });
+    $(".butt_add_to_catalog").click(function () {
+      $(this).prop("disabled", true);
     });
   </script>
 </body>

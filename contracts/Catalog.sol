@@ -5,7 +5,7 @@ import "./BaseContent.sol";
 contract Catalog{
     
     /* data about the contract itself */
-    address private owner; // address of who uploads
+    address public owner; // address of who uploads
     address private catalog_address; // address of the contract
     
     /* data about the catalog */
@@ -64,14 +64,6 @@ contract Catalog{
         }
     }
     
-    /* returns the address of a content */
-    function GetAddress (bytes32 _t) public view returns (address) {
-        uint i = position_content[_t];
-        if (i != 0) {
-            return contents_list[i-1].content_address();
-        }
-    }
-    
     /* returns the price of a content */
     function GetPrice (bytes32 _t) public view returns (uint){
         uint i = position_content[_t];
@@ -95,7 +87,7 @@ contract Catalog{
         for(uint32 j = 0; j < 4; j++){
             s += contents_list[i-1].feed(j);
         }
-        return (s / (contents_list[i-1].nVotes() * 4));
+        return ((s * 10) / (contents_list[i-1].nVotes() * 4));
     }
     
     
@@ -201,7 +193,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
@@ -219,7 +211,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.genre() == _g && bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
@@ -237,7 +229,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.author() == _a && bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? (bc.feed(_y) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
