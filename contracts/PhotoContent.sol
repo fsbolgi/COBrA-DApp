@@ -12,7 +12,7 @@ contract PhotoContent is BaseContent {
         n_pixel = 0;
     }
     
-    function setNPixel (uint32 _n) external byOwner {
+    function SetNPixel (uint32 _n) external byOwner {
         n_pixel = _n;
     }
     

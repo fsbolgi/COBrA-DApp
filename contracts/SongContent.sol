@@ -12,7 +12,7 @@ contract SongContent is BaseContent {
         track_length = 0;
     }
     
-    function setTrackLength (uint32 _l) external byOwner {
+    function SetTrackLength (uint32 _l) external byOwner {
         track_length = _l;
     }
     

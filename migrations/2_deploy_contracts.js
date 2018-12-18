@@ -56,7 +56,7 @@ module.exports = function (deployer) {
     a5 = web3.fromAscii("Pharrell");
 
     // create genres
-    g1 = web3.fromAscii("Other");
+    g1 = web3.fromAscii("Book");
     g2 = web3.fromAscii("Photo");
 
     // create prices

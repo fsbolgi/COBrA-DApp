@@ -10,7 +10,7 @@ contract Catalog{
     
     /* data about the catalog */
     BaseContent[] public contents_list; 
-    mapping (bytes32 => uint) private position_content;
+    mapping (bytes32 => uint) public position_content;
     mapping (address => uint) private premium_customers; // address of customer to expiration date as block height
     
     /* utilities variables */
@@ -80,14 +80,27 @@ contract Catalog{
         }
     }
 
+    /* returns the number of views of a content */
+    function GetOwner (bytes32 _t) public view returns (address){
+        uint i = position_content[_t];
+        if (i != 0) {
+            return contents_list[i-1].owner();
+        }
+    }
+
     /* returns the average rating for a content */ 
     function GetRate (bytes32 _t) public view returns (uint32) {
         uint i = position_content[_t];
         uint32 s = 0;
+        BaseContent bc = contents_list[i-1];
         for(uint32 j = 0; j < 4; j++){
-            s += contents_list[i-1].feed(j);
+            s += bc.feed(j);
         }
-        return ((s * 10) / (contents_list[i-1].nVotes() * 4));
+        if (bc.nVotes() != 0 ) {
+            return ((s * 10) / (bc.nVotes() * 4));
+        } else {
+            return 0;
+        }
     }
     
     

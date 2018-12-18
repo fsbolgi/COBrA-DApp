@@ -68,5 +68,30 @@ $(function () {
   });
 });
 
+function getIcon(g) {
+  var icon;
+  if (g == 0x536f6e6700000000000000000000000000000000000000000000000000000000) {
+    icon = "glyphicon-music";
+  } else if (g == 0x50686f746f000000000000000000000000000000000000000000000000000000) {
+    icon = "glyphicon-picture";
+  } else if (g == 0x4d6f766965000000000000000000000000000000000000000000000000000000) {
+    icon = "glyphicon-film";
+  } else {
+    icon = "glyphicon-file";
+  }
+  return icon;
+}
+
+function drawStars(r) {
+  var stars = "";
+  for (var i = 0; i < r; i++) {
+    stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
+  }
+  for (var i = r; i < 5; i++) {
+    stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
+  }
+  return stars;
+}
+
 
 

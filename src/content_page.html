@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-inverse">
+    <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
@@ -110,7 +110,7 @@
                         contentInstance.feed(0), contentInstance.feed(1),
                         contentInstance.feed(2), contentInstance.feed(3),
                         contentInstance.nVotes(), contentInstance.content_address(),
-                        contentInstance.owner() ]);
+                        contentInstance.owner()]);
 
                     var table = "<tr><td scope=\"row\">AUTHOR</td><td scope=\"row\">" + web3.toAscii(a) + "</td></tr>\
                 <tr><td scope=\"row\">GENRE</td><td scope=\"row\">"+ web3.toAscii(g) + "</td></tr>\
@@ -119,39 +119,29 @@
                 <tr><td scope=\"row\">VIEWS</td><td scope=\"row\">"+ v + "</td></tr>";
                     $("#table_content").append(table);
 
+                    if (nv != 0) {
+                        r1 = r1 / nv;
+                        r2 = r2 / nv;
+                        r3 = r3 / nv;
+                        r4 = r4 / nv;
+                    }
                     var table_rate = "<tr><td scope=\"row\">OVERALL</td><td scope=\"row\">\
-                        "+drawStars(Math.floor(r1/nv))+" "+ r1/nv  + "</td></tr>\
+                        "+ drawStars(Math.floor(r1)) + " " + r1 + "</td></tr>\
                 <tr><td scope=\"row\">QUALITY</td><td scope=\"row\">\
-                    "+drawStars(Math.floor(r2/nv))+" "+ r2/nv  + "</td></tr>\
+                    "+ drawStars(Math.floor(r2)) + " " + r2 + "</td></tr>\
                 <tr><td scope=\"row\">PRICE FAIRNESS</td><td scope=\"row\">\
-                    "+drawStars(Math.floor(r3/nv))+" "+ r3/nv  + "</td></tr>\
+                    "+ drawStars(Math.floor(r3)) + " " + r3 + "</td></tr>\
                 <tr><td scope=\"row\">DETAILS PRESENCE</td><td scope=\"row\">\
-                    "+drawStars(Math.floor(r4/nv))+" "+ r4/nv  + "</td></tr>";
+                    "+ drawStars(Math.floor(r4)) + " " + r4 + "</td></tr>";
                     $("#table_rate").append(table_rate);
 
-                    var table_contract = "<tr><td scope=\"row\">CONTENT ADDRESS</td><td scope=\"row\">"+ ca + "</td></tr>\
+                    var table_contract = "<tr><td scope=\"row\">CONTENT ADDRESS</td><td scope=\"row\">" + ca + "</td></tr>\
                 <tr><td scope=\"row\">OWNER ADDRESS</td><td scope=\"row\">"+ co + "</td></tr>";
                     $("#table_contract").append(table_contract);
                     return instance.title();
                 });
 
-
-
-
             });
-
-
-            function drawStars(r) {
-                var stars = "";
-                for (var i = 0; i < r; i++) {
-                    stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
-                }
-                for (var i = r; i < 5; i++) {
-                    stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
-                }
-                return stars;
-            }
-
         }
     </script>
 </body>

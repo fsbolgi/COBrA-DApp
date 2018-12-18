@@ -113,7 +113,7 @@ contract BaseContent {
         emit rate_left (msg.sender);
     }
     
-    function setSubgenre (bytes32 _s) external byOwner {
+    function SetSubgenre (bytes32 _s) external byOwner {
         subgenre = _s;
     }
         

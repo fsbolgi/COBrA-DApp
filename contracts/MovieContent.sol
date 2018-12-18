@@ -11,7 +11,7 @@ contract MovieContent is BaseContent {
         movie_length = 0;
     }
     
-    function setMovieLength (uint32 _l) external byOwner {
+    function SetMovieLength (uint32 _l) external byOwner {
         movie_length = _l;
     }
     

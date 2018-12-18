@@ -13,7 +13,7 @@
 
 <body>
 
-  <nav class="navbar navbar-inverse">
+  <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
@@ -75,11 +75,11 @@
           [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
           catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
           catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
-          var genreIcon = await getIcon(g);
-          var rateStars = await drawStars(Math.floor(r/10));
-          var loc = "content_page.html?title=" + (ix+1);
+          var genreIcon = getIcon(g);
+          var rateStars = drawStars(Math.floor(r / 10));
+          var loc = "content_page.html?title=" + (ix + 1);
           var urlp = encodeURI(loc);
-          var row = "<tr class=\"clickable-row\"  onclick=\"window.location='"+urlp+"';\" ><th scope=\"row\">" + (ix + 1) + "</th>\
+          var row = "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\" ><th scope=\"row\">" + (ix + 1) + "</th>\
         <td>"+ web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "</td><td><span class=\"glyphicon " + genreIcon + "\"\
         ></span> "+ web3.toAscii(g) + "</td><td>" + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
           $("#catalog-rows").append(row);
@@ -96,35 +96,10 @@
           $("#del_cat_container").append(b);
         }
       });
-
-      function getIcon(g) {
-        var icon;
-        if (g == 0x536f6e6700000000000000000000000000000000000000000000000000000000) {
-          icon = "glyphicon-music";
-        } else if (g == 0x50686f746f000000000000000000000000000000000000000000000000000000) {
-          icon = "glyphicon-picture";
-        } else if (g == 0x4d6f766965000000000000000000000000000000000000000000000000000000) {
-          icon = "glyphicon-film";
-        } else {
-          icon = "glyphicon-file";
-        }
-        return icon;
-      }
-
-      function drawStars(r) {
-        var stars = "";
-        for (var i = 0; i < r; i++) {
-          stars += "<span class=\"glyphicon glyphicon-star\"></span> ";
-        }
-        for (var i = r; i < 5; i++) {
-          stars += "<span class=\"glyphicon glyphicon-star-empty\"></span> ";
-        }
-        return stars;
-      }
     }
   </script>
   <script>
-    $("#del_cat_container").on("click", "#butt_del_cat", function(t) {
+    $("#del_cat_container").on("click", "#butt_del_cat", function (t) {
       App.contracts.Catalog.deployed().then(function (instance) {
         instance.KillCatalog();
       });

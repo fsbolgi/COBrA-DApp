@@ -13,7 +13,7 @@
 
 <body>
 
-  <nav class="navbar navbar-inverse">
+  <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
       <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
@@ -48,7 +48,6 @@
           <th scope="col">PRICE</th>
           <th scope="col">VIEWS</th>
           <th scope="col">RATING</th>
-          <th scope="col"></th>
         </tr>
       </thead>
       <tbody id="author-rows">
@@ -58,7 +57,7 @@
 
   <div class="container">
     <h3>ADD A NEW CONTENT</h3>
-    <p>Insert the informations about the content you want to deploy and add to the catalog:</p>
+    <p id="info_new_cont">Insert the informations about the content you want to deploy and add to the catalog:</p>
     <form class="add_content_form">
       <div class="form-group">
         <label for="title_form">TITLE*</label>
@@ -109,6 +108,35 @@
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
   <script>
+    function render() {
+      var catalogInstance;
+      App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return catalogInstance.GetContentList();
+      }).then(async function (ll) {
+        const promises = ll.map(async function (t, ix) {
+          var ow = await catalogInstance.GetOwner(t);
+          if (ow == App.account) {
+            var a, g, p, v, r;
+            [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
+            catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+            catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
+            var genreIcon = await getIcon(g);
+            var rateStars = await drawStars(Math.floor(r / 10));
+            var loc = "content_page.html?title=" + (ix + 1);
+            var urlp = encodeURI(loc);
+            var row = "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\"\
+            ><th scope=\"row\">" + (ix + 1) + "</th><td>" + web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "\
+              </td><td><span class=\"glyphicon " + genreIcon + "\"></span> " + web3.toAscii(g) + "</td><td>\
+                " + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
+            $("#author-rows").append(row);
+          }
+        });
+        await Promise.all(promises);
+      });
+    }
+  </script>
+  <script>
     var genre_field_present = false;
 
     $(".genre_option").click(function (g) {
@@ -145,20 +173,84 @@
     });
   </script>
   <script>
+    var new_content;
+
     $(".butt_deploy_contract").click(function () {
-      /*App.contracts.Catalog.deployed().then(function (instance) {
-        catalogInstance = instance;
-        return catalogInstance.GetContentList();
-      }).then(function (a) {
-        console.log(a);
-      });*/
-      $(this).prop("disabled", true);
-      $(".butt_add_to_catalog").prop("disabled", false);
-      $(this).toggleClass('btn-primary btn-secondary');
-      $(".butt_add_to_catalog").toggleClass('btn-primary btn-secondary');
+      $(".alert").remove();
+      var t, a, g, p;
+      t = document.getElementById("title_form").value;
+      var t_byte = web3.fromAscii(t);
+      a = document.getElementById("author_form").value;
+      g = document.getElementById("genre_form").value;
+      if (g == "Other") {
+        g = document.getElementById("other_genre_form").value;
+      }
+      p = document.getElementById("price_form").value;
+      if (t == 0 || a == 0 || g == 0 || p == 0) {
+        var al = "<div class=\"alert alert-danger alert-dismissible\">\
+            <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
+            <strong>Error!</strong> All required fields must be filled.</div>";
+        $(al).insertAfter("#info_new_cont");
+      } else {
+        var catalogInstance;
+        App.contracts.Catalog.deployed().then(function (instance) {
+          catalogInstance = instance;
+          return catalogInstance.position_content(t_byte);
+        }).then(async function (position) {
+          if (position == 0) {
+            $(".butt_deploy_contract").prop("disabled", true);
+            $(".butt_add_to_catalog").prop("disabled", false);
+            $(".butt_deploy_contract").toggleClass('btn-primary btn-secondary');
+            $(".butt_add_to_catalog").toggleClass('btn-primary btn-secondary');
+            switch (g) {
+              case "Song":
+                new_content = await App.contracts.SongContent.new(catalogInstance.address, t_byte, web3.fromAscii(a), p, { from: App.account }); break;
+              case "Movie":
+                new_content = await App.contracts.MovieContent.new(catalogInstance.address, t_byte, web3.fromAscii(a), p, { from: App.account }); break;
+              case "Photo":
+                new_content = await App.contracts.PhotoContent.new(catalogInstance.address, t_byte, web3.fromAscii(a), p, { from: App.account }); break;
+              default:
+                new_content = await App.contracts.BaseContent.new(catalogInstance.address, t_byte, web3.fromAscii(a), web3.fromAscii(g), p, { from: App.account }); break;
+            }
+
+            var subg = document.getElementById("subgenre_form").value;
+            if (subg != 0) {
+              new_content.SetSubgenre(web3.fromAscii(subg));
+            }
+
+            if (g == "Song" || g == "Movie" || g == "Photo") {
+              var more = document.getElementById("more_info_form").value;
+              if (more != 0) {
+                switch (g) {
+                  case "Song":
+                    new_content.SetTrackLength(more); break;
+                  case "Movie":
+                    new_content.SetMovieLength(more); break;
+                  case "Photo":
+                    new_content.SetNPixel(more); break;
+                }
+              }
+            }
+          } else {
+            var al = "<div class=\"alert alert-danger alert-dismissible\">\
+            <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
+            <strong>Error!</strong> The title inserted is already present in the \
+            catalog, choose a unique name.</div>";
+            $(al).insertAfter("#info_new_cont");
+          }
+        });
+      }
     });
+
     $(".butt_add_to_catalog").click(function () {
-      $(this).prop("disabled", true);
+      $(".butt_add_to_catalog").prop("disabled", true);
+      App.contracts.Catalog.deployed().then(async function (instance) {
+        await instance.AddContent(new_content.address, { from: App.account });
+        instance.GetLengthCatalog().then(function (l) {
+          var loc = "content_page.html?title=" + (l);
+          window.location = loc;
+        });
+      });
     });
   </script>
 </body>
