@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>COBrA</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/my_style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand"><b>COBrA</b></a>
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav">
+                    <li><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
+                    <li><a href="author_page.html">AUTHOR <span class="glyphicon glyphicon-upload"></span></a></li>
+                    <li><a href="premium_page.html">PREMIUM <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" id="title_content">
+    </div>
+
+    <div class="container">
+        <div class="container container_overall">
+            <p>How much are you satisfied with the content overall?</p>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_overall_1" name="optradio_overall" value="1"> 1
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_overall_2" name="optradio_overall" value="2"> 2
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_overall_3" name="optradio_overall" value="3"> 3
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_overall_4" name="optradio_overall" value="4"> 4
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_overall_5" name="optradio_overall" value="5"> 5
+            </label>
+        </div>
+        <div class="container container_quality">
+            <p>How good is the quality of the content?</p>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_quality_1" name="optradio_quality" value="1"> 1
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_quality_2" name="optradio_quality" value="2"> 2
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_quality_3" name="optradio_quality" value="3"> 3
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_quality_4" name="optradio_quality" value="4"> 4
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_quality_5" name="optradio_quality" value="5"> 5
+            </label>
+        </div>
+        <div class="container container_price">
+            <p>Is the price fair for the content offered?</p>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_price_1" name="optradio_price" value="1"> 1
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_price_2" name="optradio_price" value="2"> 2
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_price_3" name="optradio_price" value="3"> 3
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_price_4" name="optradio_price" value="4"> 4
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_price_5" name="optradio_price" value="5"> 5
+            </label>
+        </div>
+        <div class="container container_details">
+            <p>Was there sufficient information to understand which content you were purchasing?</p>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_details_1" name="optradio_details" value="1"> 1
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_details_2" name="optradio_details" value="2"> 2
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_details_3" name="optradio_details" value="3"> 3
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_details_4" name="optradio_details" value="4"> 4
+            </label>
+            <label class="radio-inline  col-xs-2">
+                <input type="radio" id="radio_details_5" name="optradio_details" value="5"> 5
+            </label>
+        </div>
+
+    </div>
+
+    <div class="container" id="leave_rate_container">
+        <button type="button" class="btn btn-primary butt_rate pull-right" disabled>
+            LEAVE RATE
+        </button>
+    </div>
+
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        var contentInstance;
+
+        function render() {
+            var url_string = window.location.href;
+            var url = new URL(url_string);
+            uri_dec = url.searchParams.get("title");
+
+            App.contracts.Catalog.deployed().then(function (instance) {
+                catalogInstance = instance;
+                return catalogInstance.GetContentList();
+            }).then(async function (ll) {
+                t = ll[uri_dec - 1];
+                var address_co = await catalogInstance.contents_list(uri_dec - 1) + "";
+                App.contracts.BaseContent.at(address_co).then(async function (instance) {
+                    contentInstance = instance;
+
+                    var title_name = web3.toUtf8(t);
+                    var title_string = "<h3>" + title_name.toUpperCase() + "</h3>";
+                    $("#title_content").append(title_string);
+
+                    contentInstance.CanVote().then(async function (is_a) {
+                        $(".butt_rate").prop("disabled", false);
+                    });
+                });
+            });
+
+        }
+
+        $(".butt_rate").click(function () {
+            $(".alert").remove();
+            var overall_val = $('.container_overall input:radio:checked').val();
+            var quality_val = $('.container_quality input:radio:checked').val();
+            var price_val = $('.container_price input:radio:checked').val();
+            var details_val = $('.container_details input:radio:checked').val();
+            if (overall_val == null || quality_val == null || price_val == null || details_val == null) {
+                var al = "<div class=\"alert alert-danger alert-dismissible\">\
+                <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
+                <strong>Error!</strong> All fields must be filled.</div>";
+                $("#title_content").append(al);
+            } else {
+                contentInstance.LeaveRate([overall_val, quality_val, price_val, details_val]).then(function () {
+                    var loc = "personal_page.html";
+                    window.location = loc;
+                });
+            }
+        });
+    </script>
+
+</body>
+
+</html>

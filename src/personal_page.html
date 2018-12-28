@@ -59,10 +59,10 @@
           <th scope="col"></th>
         </tr>
       </thead>
-      <tbody id="author-rows">
+      <tbody id="to_consume_rows">
       </tbody>
     </table>
-    <h3>LIST OF CONTENTS YOU HAVE SEEN</h3>
+    <h3>LIST OF CONTENTS YOU CAN RATE</h3>
     <table class="table table-hover">
       <thead class="thead-dark">
         <tr>
@@ -76,7 +76,7 @@
           <th scope="col"></th>
         </tr>
       </thead>
-      <tbody id="author-rows">
+      <tbody id="to_rate_rows">
       </tbody>
     </table>
   </div>
@@ -87,8 +87,7 @@
   <script>
     function render() {
       var catalogInstance;
-
-      var this_acc = "<h4>YOUR ADDRESS IS " + App.account + "</h4>";
+      var this_acc = "<h3>YOUR ADDRESS IS " + App.account + "</h3>";
       $("#address_container").append(this_acc);
       App.contracts.Catalog.deployed().then(function (instance) {
         catalogInstance = instance;
@@ -96,16 +95,66 @@
       }).then(function (is_p) {
         var t_a;
         if (is_p) {
-          catalogInstance.premium_customers(App.account).then(async function (exp) {
-            var bb = await getBlockNumber();
-            t_a = "<h5>Your premium subscription will expire in " + (exp - bb) + " blocks.</h5>";
-            $("#address_container").append(t_a);
+          catalogInstance.premium_customers(App.account).then(function (exp) {
+            web3.eth.getBlockNumber(function (error, bb) {
+              t_a = "<h4>Your premium subscription will expire in " + (exp - bb) + " blocks.</h4>";
+              $("#address_container").append(t_a);
+            });
           });
         } else {
-          t_a = "<h5>You have a standard account, buy premium!</h5>";
+          t_a = "<h4>You have a standard account, buy premium!</h4>";
           $("#address_container").append(t_a);
         }
+      });
 
+      App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return catalogInstance.GetContentList();
+      }).then(async function (ll) {
+        const promises = ll.map(async function (t, ix) {
+          var address_co = await catalogInstance.contents_list(ix) + "";
+          App.contracts.BaseContent.at(address_co).then(async function (instance) {
+            contentInstance = instance;
+
+            contentInstance.IsAuthorized().then(async function (is_a) {
+              if (is_a) {
+                var a, g, p, v, r;
+                [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
+                catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+                catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
+                var genreIcon = await getIcon(g);
+                var rateStars = await drawStars(Math.floor(r / 10));
+                var loc = "content_page.html?title=" + (ix + 1);
+                var urlp = encodeURI(loc);
+                var row = "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\"\
+            ><th scope=\"row\">" + (ix + 1) + "</th><td>" + web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "\
+              </td><td><span class=\"glyphicon " + genreIcon + "\"></span> " + web3.toAscii(g) + "</td><td>\
+                " + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
+                $("#to_consume_rows").append(row);
+              }
+            });
+
+            contentInstance.has_consumed(App.account).then(async function (has_c) {
+              if (has_c) {
+                var a, g, p, v, r;
+                [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
+                catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+                catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
+                var genreIcon = await getIcon(g);
+                var rateStars = await drawStars(Math.floor(r / 10));
+                var loc = "content_page.html?title=" + (ix + 1);
+                var urlp = encodeURI(loc);
+                var row = "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\"\
+            ><th scope=\"row\">" + (ix + 1) + "</th><td>" + web3.toAscii(t) + "</td><td>" + web3.toAscii(a) + "\
+              </td><td><span class=\"glyphicon " + genreIcon + "\"></span> " + web3.toAscii(g) + "</td><td>\
+                " + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
+                $("#to_rate_rows").append(row);
+
+              }
+            });
+          });
+        });
+        await Promise.all(promises);
       });
 
     }

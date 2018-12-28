@@ -11,12 +11,12 @@ contract Catalog{
     /* data about the catalog */
     BaseContent[] public contents_list; 
     mapping (bytes32 => uint) public position_content;
-    mapping (address => uint) private premium_customers; // address of customer to expiration date as block height
+    mapping (address => uint) public premium_customers; // address of customer to expiration date as block height
     
     /* utilities variables */
     uint private time_premium = 40000; // premium lasts approximately one week
     uint private cost_content = 0.002 ether; // each content costs  about 80 cents
-    uint private cost_premium = 0.03 ether; // premium costs about 12 euro
+    uint public cost_premium = 0.25 ether; // premium costs about 20 euro
     uint16 private v = 100; // number of views required before payment
     
     /* events triggered */
@@ -191,6 +191,19 @@ contract Catalog{
         uint32 most_views = 0;
         for (uint i = 0; i < contents_list.length; i++) {
             if (contents_list[i].author() == _a && contents_list[i].view_count() > most_views) {
+                most_popular = contents_list[i].title();
+                most_views = contents_list[i].view_count();
+            }
+        }
+        return most_popular;
+    }
+
+    /* returns the content with most views */
+    function GetMostPopular () public view returns (bytes32){
+        bytes32 most_popular = 0;
+        uint32 most_views = 0;
+        for (uint i = 0; i < contents_list.length; i++) {
+            if (contents_list[i].view_count() > most_views) {
                 most_popular = contents_list[i].title();
                 most_views = contents_list[i].view_count();
             }

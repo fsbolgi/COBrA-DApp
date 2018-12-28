@@ -21,7 +21,7 @@ contract BaseContent {
     /* data about feedback */
     uint32[4] public feed; // 0: overall, 1: price, 2: quality, 3: details
     uint32 public nVotes; // number of people who voted
-    mapping (address => bool) private has_consumed; // list of addresses who can vote
+    mapping (address => bool) public has_consumed; // list of addresses who can vote
 
 
     /* data about the customers authorized to access the content */
@@ -48,12 +48,12 @@ contract BaseContent {
         _;
     }
     modifier byAuthorized() {
-        require(authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number);
+        require(IsAuthorized());
         _;
     }
 
     modifier byConsumer() {
-        require(has_consumed[msg.sender]);
+        require(CanVote());
         _;
     }
     
@@ -81,6 +81,14 @@ contract BaseContent {
     /* insert the customer address as authorized to access this content */
     function AuthorizePremium (address _customer, uint _expiration_date) external byCatalog{
         authorized_premium[_customer] = _expiration_date;
+    }
+
+    function IsAuthorized() public view returns (bool){
+        return authorized_std[msg.sender] || authorized_premium[msg.sender] > block.number;
+    }
+
+    function CanVote() public view returns (bool){
+        return has_consumed[msg.sender];
     }
     
      /* called by the catalog to mark the views already payed */

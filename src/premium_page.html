@@ -37,7 +37,7 @@
   </nav>
 
   <div class="container">
-    <h2 class="text-center">GET <b>x</b> BLOCKS TIME OF PREMIUM FOR <b>y</b> WEI!</h2>
+    <h2 class="text-center">GET <b>40000</b> BLOCKS TIME OF PREMIUM FOR <b>0.25</b> ETH!</h2>
   </div>
 
   <h3 class="text-center">WHY GO PREMIUM?</h3>
@@ -97,7 +97,7 @@
 
         <label class="col-sm-2">TO: </label>
         <div class="col-sm-10">
-          <input type="text" class="form-control address_gift" placeholder="Address of the person">
+          <input type="text" class="form-control" id="address_gift" placeholder="Address of the person">
         </div>
       </div>
     </div>
@@ -107,9 +107,33 @@
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
   <script>
-      function render() { 
-      }
-    </script>
+    function render() {
+    }
+  </script>
+  <script>
+    var catalogInstance;
+    $(".butt_buy_premium").click(function () {
+      App.contracts.Catalog.deployed().then(async function (instance) {
+        catalogInstance = instance;
+        return instance.cost_premium();
+      }).then(function (cp) {
+        return catalogInstance.BuyPremium({ from: App.account, value: cp });
+      }).then(function () {
+        var loc = "personal_page.html";
+        window.location = loc;
+      });
+    });
+    $(".butt_gift_premium").click(function () {
+      // read the to section
+      var addr = document.getElementById("address_gift").value;
+      App.contracts.Catalog.deployed().then(async function (instance) {
+        catalogInstance = instance;
+        return instance.cost_premium();
+      }).then(function (cp) {
+        catalogInstance.GiftPremium(addr, { from: App.account, value: cp });
+      });
+    });
+  </script>
 </body>
 
 </html>

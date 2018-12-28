@@ -74,36 +74,63 @@
                 <button type="button" class="btn btn-primary butt_gift_content center-block">
                     GIFT CONTENT
                 </button>
+
+                <label class="col-sm-2">TO: </label>
+                <div class="col-sm-10">
+                    <input type="text" class="form-control" id="address_gift" placeholder="Address of the person">
+                </div>
             </div>
         </div>
+    </div>
+
+    <div class="container" id="del_cont_container">
     </div>
 
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
     <script>
+        var catalogInstance, contentInstance, uri_dec, t, r, a, g, subg, p, v, r1, r2, r3, r4, ca, co;
+
         function render() {
             var url_string = window.location.href;
             var url = new URL(url_string);
-            var uri_dec = url.searchParams.get("title");
-            var catalogInstance, contentInstance, t, r, a, g, subg, p, v, r1, r2, r3, r4, ca, co;
+            uri_dec = url.searchParams.get("title");
 
             App.contracts.Catalog.deployed().then(function (instance) {
                 catalogInstance = instance;
                 return catalogInstance.GetContentList();
             }).then(async function (ll) {
                 t = ll[uri_dec - 1];
-                var title_name = web3.toUtf8(t);
-                var title_string = "<h3>" + title_name.toUpperCase() + "</h3>";
-                $("#title_content").append(title_string);
-                catalogInstance.GetRate(t).then(function (r) {
-                    var rateStars = drawStars(Math.floor(r / 10));
-                    var rate_score = "<h4>" + rateStars + "" + r / 10 + "</h4>";
-                    $("#title_content").append(rate_score);
-                });
                 var address_co = await catalogInstance.contents_list(uri_dec - 1) + "";
-                App.contracts.SongContent.at(address_co).then(async function (instance) {
+                App.contracts.BaseContent.at(address_co).then(async function (instance) {
                     contentInstance = instance;
+
+                    contentInstance.IsAuthorized().then(async function (is_a) {
+                        if (is_a) {
+                            var b = "<button type=\"button\" id=\"butt_consume\" class=\"btn btn-success pull-right\">\
+                            CONSUME CONTENT</button>";
+                            $("#title_content").append(b);
+                        }
+                    });
+
+                    contentInstance.CanVote().then(async function (is_a) {
+                        if (is_a) {
+                            var b = "<button type=\"button\" id=\"butt_rate\" class=\"btn btn-success pull-right\">\
+                            RATE CONTENT</button>";
+                            $("#title_content").append(b);
+                        }
+                    });
+
+                    var title_name = web3.toUtf8(t);
+                    var title_string = "<h3>" + title_name.toUpperCase() + "</h3>";
+                    $("#title_content").append(title_string);
+                    catalogInstance.GetRate(t).then(function (r) {
+                        var rateStars = drawStars(Math.floor(r / 10));
+                        var rate_score = "<h4>" + rateStars + "" + r / 10 + "</h4>";
+                        $("#title_content").append(rate_score);
+                    });
+
                     [a, g, subg, p, v, r1, r2, r3, r4, nv, ca, co] = await Promise.all(
                         [contentInstance.author(), contentInstance.genre(), contentInstance.subgenre(),
                         contentInstance.price(), contentInstance.view_count(),
@@ -138,12 +165,68 @@
                     var table_contract = "<tr><td scope=\"row\">CONTENT ADDRESS</td><td scope=\"row\">" + ca + "</td></tr>\
                 <tr><td scope=\"row\">OWNER ADDRESS</td><td scope=\"row\">"+ co + "</td></tr>";
                     $("#table_contract").append(table_contract);
-                    return instance.title();
+
+                    contentInstance.owner().then(async function (ow) {
+                        if (ow == App.account) {
+                            var b = "<button type=\"button\" class=\"btn btn-danger btn-sm \
+                            pull-right\" id=\"butt_del_cat\">DELETE CONTENT</button>";
+                            $("#del_cont_container").append(b);
+                        }
+                    });
                 });
 
             });
+
         }
+
+        $(".butt_buy_content").click(function () {
+            App.contracts.Catalog.deployed().then(async function (instance) {
+                catalogInstance = instance;
+                return catalogInstance.isPremium(App.account);
+            }).then(function (is_p) {
+                if (is_p) {
+                    catalogInstance.GetContentPremium(t, { from: App.account }).then(function () {
+                        var loc = "personal_page.html";
+                        window.location = loc;
+                    });
+                } else {
+                    catalogInstance.GetPrice(t).then(function (cp) {
+                        catalogInstance.GetContent(t, { from: App.account, value: cp }).then(function () {
+                            var loc = "personal_page.html";
+                            window.location = loc;
+                        });
+                    });
+                }
+            });
+        });
+
+        $(".butt_gift_content").click(function () {
+            var addr = document.getElementById("address_gift").value;
+            App.contracts.Catalog.deployed().then(async function (instance) {
+                catalogInstance = instance;
+                return instance.GetPrice(t);
+            }).then(function (cp) {
+                catalogInstance.GiftContent(t, addr, { from: App.account, value: cp });
+            });
+        });
+
+        $("#del_cont_container").on("click", "#butt_del_cat", function (t) {
+            contentInstance.KillContent();
+        });
+
+        $("#title_content").on("click", "#butt_consume", function (t) {
+            contentInstance.ConsumeContent().then(function () {
+                var loc = "personal_page.html";
+                window.location = loc;
+            });
+        });
+
+        $("#title_content").on("click", "#butt_rate", function (t) {
+            var loc = "rate_page.html?title=" + (uri_dec);
+            window.location = loc;
+        });
     </script>
+
 </body>
 
 </html>
