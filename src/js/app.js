@@ -56,6 +56,9 @@ App = {
     web3.eth.getCoinbase(function (err, account) {
       if (err === null) {
         App.account = account;
+
+        showNotifications();
+
         return render();
       }
     });
@@ -93,5 +96,58 @@ function drawStars(r) {
   return stars;
 }
 
+function showNotifications() {
+
+  var catalogInstance;
+  var n_notif = 0;
+
+  App.contracts.Catalog.deployed().then(function (instance) {
+    catalogInstance = instance;
+    return instance.notifications_to_see(App.account);
+  }).then(function (n_not) {
+
+    catalogInstance.new_publication({}, {
+      fromBlock: n_not,
+      toBlock: 'latest'
+    }).watch(function () {
+      n_notif++;
+      insertBadge(n_notif);
+    });
+
+    catalogInstance.content_acquired({}, {
+      fromBlock: n_not,
+      toBlock: 'latest'
+    }).watch(function () {
+      n_notif++;
+      insertBadge(n_notif);
+    });
+
+    catalogInstance.premium_acquired({}, {
+      fromBlock: n_not,
+      toBlock: 'latest'
+    }).watch(function () {
+      n_notif++;
+      insertBadge(n_notif);
+    });
+
+    catalogInstance.author_payed({}, {
+      fromBlock: n_not,
+      toBlock: 'latest'
+    }).watch(function () {
+      n_notif++;
+      insertBadge(n_notif);
+    });
+
+  });
+
+  
+
+}
+
+function insertBadge(n_notif) {
+  $(".badge").remove();
+  var notification = " <span class=\"badge\"> " + n_notif + " </span>";
+  $(notification).insertAfter(("#notif"));
+}
 
 

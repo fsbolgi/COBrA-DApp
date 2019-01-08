@@ -31,7 +31,7 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
-          <li><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
+          <li><a href="personal_page.html">PERSONAL AREA <span  id="notif" class="glyphicon glyphicon-user"></span></a></li>
         </ul>
       </div>
     </div>
@@ -64,6 +64,7 @@
   <script src="js/app.js"></script>
   <script>
     function render() {
+
       var catalogInstance;
 
       App.contracts.Catalog.deployed().then(function (instance) {
@@ -101,7 +102,9 @@
   <script>
     $("#del_cat_container").on("click", "#butt_del_cat", function (t) {
       App.contracts.Catalog.deployed().then(function (instance) {
-        instance.KillCatalog();
+        instance.KillCatalog().then(function () {
+          $(".table").remove();
+        });
       });
     });
   </script>

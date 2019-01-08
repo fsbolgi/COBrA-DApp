@@ -30,7 +30,7 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
-                    <li><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
+                    <li><a href="personal_page.html">PERSONAL AREA <span id="notif" class="glyphicon glyphicon-user"></span></a></li>
                 </ul>
             </div>
         </div>
@@ -83,9 +83,6 @@
         </div>
     </div>
 
-    <div class="container" id="del_cont_container">
-    </div>
-
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
@@ -131,6 +128,37 @@
                         $("#title_content").append(rate_score);
                     });
 
+                    var line = await contentInstance.ContentType().then(async function (gg) {
+                        var genr = web3.toUtf8(gg);
+                        switch (genr) {
+                            case "Movie":
+                                var instance = await App.contracts.MovieContent.at(address_co);
+                                var ll = await instance.movie_length();
+                                if (ll != 0) {
+                                    return "<tr><td scope=\"row\">MOVIE LENGTH</td><td scope=\"row\">" + ll + "</td></tr>";
+                                }
+                                break;
+                            case "Song":
+                                var instance = await App.contracts.SongContent.at(address_co);
+                                var ll = await instance.track_length();
+                                if (ll != 0) {
+
+                                    return "<tr><td scope=\"row\">TRACK LENGTH</td><td scope=\"row\">" + ll + "</td></tr>";
+                                }
+                                break;
+                            case "Photo":
+                                var instance = await App.contracts.PhotoContent.at(address_co);
+                                var ll = await instance.n_pixel();
+                                if (ll != 0) {
+
+                                    return "<tr><td scope=\"row\">NUMBER OF PIXELS</td><td scope=\"row\">" + ll + "</td></tr>";
+                                }
+                                break;
+                            default:
+                                return "";
+                        }
+                    });
+
                     [a, g, subg, p, v, r1, r2, r3, r4, nv, ca, co] = await Promise.all(
                         [contentInstance.author(), contentInstance.genre(), contentInstance.subgenre(),
                         contentInstance.price(), contentInstance.view_count(),
@@ -143,7 +171,7 @@
                 <tr><td scope=\"row\">GENRE</td><td scope=\"row\">"+ web3.toAscii(g) + "</td></tr>\
                 <tr><td scope=\"row\">SUBGENRE</td><td scope=\"row\">"+ web3.toAscii(subg) + "</td></tr>\
                 <tr><td scope=\"row\">PRICE</td><td scope=\"row\">"+ p + "</td></tr>\
-                <tr><td scope=\"row\">VIEWS</td><td scope=\"row\">"+ v + "</td></tr>";
+                <tr><td scope=\"row\">VIEWS</td><td scope=\"row\">"+ v + "</td></tr>" + line;
                     $("#table_content").append(table);
 
                     if (nv != 0) {
@@ -208,10 +236,6 @@
             }).then(function (cp) {
                 catalogInstance.GiftContent(t, addr, { from: App.account, value: cp });
             });
-        });
-
-        $("#del_cont_container").on("click", "#butt_del_cat", function (t) {
-            contentInstance.KillContent();
         });
 
         $("#title_content").on("click", "#butt_consume", function (t) {

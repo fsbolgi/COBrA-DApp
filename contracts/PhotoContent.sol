@@ -15,5 +15,9 @@ contract PhotoContent is BaseContent {
     function SetNPixel (uint32 _n) external byOwner {
         n_pixel = _n;
     }
+
+    function ContentType() public view returns (bytes32) {
+        return g;
+    }
     
 }

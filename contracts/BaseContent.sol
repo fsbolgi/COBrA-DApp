@@ -32,11 +32,9 @@ contract BaseContent {
 
 
     /* events triggered */
-    event content_created (address _content_address); // new content created
     event v_reached (uint32 _views_to_be_payed); // reached the number of views to request a payment
     event content_consumed (address _customer); // customer just consumed this content
-    event content_destroyed (); // the content no longer can be accessed
-    event rate_left(address _customer);
+    event rate_left(address _customer); // customer just left a rating for this content
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
@@ -69,7 +67,6 @@ contract BaseContent {
         price = _price;
         view_count = 0;
         views_already_payed = 0;
-        emit content_created (content_address);
     }
 
 
@@ -89,6 +86,10 @@ contract BaseContent {
 
     function CanVote() public view returns (bool){
         return has_consumed[msg.sender];
+    }
+
+    function ContentType() public view returns (bytes32) {
+        return "";
     }
     
      /* called by the catalog to mark the views already payed */
@@ -125,9 +126,4 @@ contract BaseContent {
         subgenre = _s;
     }
         
-    /* the content can be destructed */
-    function KillContent () external byOwner {
-        emit content_destroyed ();
-        selfdestruct(content_address);
-    }
 }

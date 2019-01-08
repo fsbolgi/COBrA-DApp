@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>COBrA</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/my_style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand"><b>COBrA</b></a>
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav">
+                    <li><a href="index.html">CATALOG <span class="glyphicon glyphicon-list"></span></a></li>
+                    <li><a href="author_page.html">AUTHOR <span class="glyphicon glyphicon-upload"></span></a></li>
+                    <li><a href="premium_page.html">PREMIUM <span class="glyphicon glyphicon-shopping-cart"></span></a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a href="personal_page.html">PERSONAL AREA <span id="notif" class="glyphicon glyphicon-user"></span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3>NOTIFICATION SETTINGS</h3>
+    </div>
+
+    <div class="container">
+        <div class="form-group">
+            <label>INSERT THE NAME OF AN AUTHOR YOU WANT TO FOLLOW</label>
+            <input type="text" class="form-control" id="author_form" placeholder="Insert an author">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-group">
+            <label>INSERT THE NAME OF A GENRE YOU WANT TO FOLLOW</label>
+            <input type="text" class="form-control" id="genre_form" placeholder="Insert a genre">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="checkbox">
+            <label class="form-check-label" for="exampleCheck1">
+                TURN OFF ALL NOTIFICATIONS
+            </label>
+        </div>
+    </div>
+
+    <div class="container" id="leave_rate_container">
+        <button type="button" class="btn btn-primary butt_save pull-right">
+            SAVE MODIFICATIONS
+        </button>
+    </div>
+
+    <script src="js/web3.min.js"></script>
+    <script src="js/truffle-contract.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+
+        function render() {
+        }
+
+        $(".butt_save").click(function () {
+
+            var catalogInstance;
+
+            App.contracts.Catalog.deployed().then(function (instance) {
+                catalogInstance = instance;
+                return catalogInstance.GetNotifPreferences(App.account);
+            }).then(function (list_p) {
+                var turn_off = 0;
+                if ($('#checkbox').is(':checked')) {
+                    turn_off = 1;
+                } else {
+                    turn_off = 0;
+                }
+
+                if (list_p == []) {
+                    list_p = [turn_off];
+                } else {
+                    list_p[0] = turn_off;
+                }
+
+                var a = document.getElementById("author_form").value;
+                var g = document.getElementById("genre_form").value;
+                if (a != 0) {
+                    list_p.push(web3.fromAscii(a));
+                }
+                if (g != 0) {
+                    list_p.push(web3.fromAscii(g));
+                }
+
+                catalogInstance.SetNotifPreferences(App.account, list_p);
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>

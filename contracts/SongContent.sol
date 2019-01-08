@@ -16,4 +16,7 @@ contract SongContent is BaseContent {
         track_length = _l;
     }
     
+    function ContentType() public view returns (bytes32) {
+        return g;
+    }
 }

@@ -77,3 +77,35 @@ body {
     /*margin-top: 10px;*/
 }
 
+#loader1, #loader2  {
+    position: relative;
+    left: 50%;
+    z-index: 1;
+    margin: 0px 0 0 -75px;
+    border: 10px solid #f2f2f2;
+    border-radius: 50%;
+    border-top: 10px solid #808080;
+    width: 50px;
+    height: 50px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+  }
+  
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.badge {
+    position:relative;
+    background: #6196ed;
+    top: -2px;
+    left: 10px;
+}
+  
+

@@ -13,20 +13,20 @@ contract Catalog{
     mapping (bytes32 => uint) public position_content;
     mapping (address => uint) public premium_customers; // address of customer to expiration date as block height
     
+    /* data about the accounts */
+    mapping (address => uint) public notifications_to_see;
+    mapping (address => bytes32[]) public notifications_preferences;
+
     /* utilities variables */
     uint private time_premium = 40000; // premium lasts approximately one week
-    uint private cost_content = 0.002 ether; // each content costs  about 80 cents
     uint public cost_premium = 0.25 ether; // premium costs about 20 euro
     uint16 private v = 100; // number of views required before payment
     
     /* events triggered */
-    event catalog_created (address _catalog_address);
     event new_publication (bytes32 _title, bytes32 _author, bytes32 _genre);
-    event content_acquired (bytes32 _title, address _customer, BaseContent _content);
-    event premium_acquired (address _customer, uint _expiration);
-    event change_given (address _customer, uint _change);
+    event content_acquired (bytes32 _title, address _customer, uint32 _gifted);
+    event premium_acquired (address _customer, uint32 _gifted);
     event author_payed (bytes32 _t, uint _tot_money);
-    event catalog_destroyed ();
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
@@ -38,7 +38,6 @@ contract Catalog{
     constructor () public {
         owner = msg.sender;
         catalog_address = address(this);
-        emit catalog_created(catalog_address);
     }
     
     
@@ -87,6 +86,15 @@ contract Catalog{
             return contents_list[i-1].owner();
         }
     }
+
+    function GetNotifPreferences(address _u) public view returns (bytes32[] memory) {
+        return notifications_preferences[_u];
+    }
+
+    function SetNotifPreferences(address _u, bytes32[] memory _list) public {
+        notifications_preferences[_u] = _list;
+    }
+
 
     /* returns the average rating for a content */ 
     function GetRate (bytes32 _t) public view returns (uint32) {
@@ -273,8 +281,6 @@ contract Catalog{
     
     
     
-    
-    
     /* Functions which modify the state of the contract */
     
     /* submits a new content _c to the catalog */
@@ -289,16 +295,11 @@ contract Catalog{
     
     /* pays to access content _t */
     function GetContent (bytes32 _t) external payable {
-        require(msg.value >= GetPrice(_t));
-        uint change = msg.value - GetPrice(_t);
-        if (change > 0) {
-            msg.sender.transfer(change);
-            emit change_given (msg.sender, change);
-        }
+        require(msg.value == GetPrice(_t));
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].Authorize(msg.sender);
-            emit content_acquired (_t, msg.sender, contents_list[i-1]);
+            emit content_acquired (_t, msg.sender, 0);
         }
     }
     
@@ -308,47 +309,37 @@ contract Catalog{
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].AuthorizePremium(msg.sender, premium_customers[msg.sender]);
-            emit content_acquired (_t, msg.sender, contents_list[i-1]);
+            emit content_acquired (_t, msg.sender, 0);
         }
     }
     
     /* pays for granting access to content _t to the user _u */
     function GiftContent  (bytes32 _t, address _u) external payable {
-        require(msg.value >= GetPrice(_t));
-        uint change = msg.value - GetPrice(_t);
-        if (change > 0) {
-            msg.sender.transfer(change);
-            emit change_given (msg.sender, change);
-        }
+        require(msg.value == GetPrice(_t));        
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].Authorize(_u);
-            emit content_acquired (_t, _u, contents_list[i-1]);
+            emit content_acquired (_t, msg.sender, 1);
         }
     }
-    
-    /* pays for granting a premium account to the user _u */
-    function GiftPremium  (address _u) external payable {
-        require(msg.value >= cost_premium);
-        uint change = msg.value - cost_premium;
-        if (change > 0) {
-            msg.sender.transfer(change);
-            emit change_given (msg.sender, change);
-        }
-        premium_customers[_u] = block.number + time_premium;
-        emit premium_acquired (_u, premium_customers[_u]);
-    }
-    
+       
     /* buys a new premium subscription */
     function BuyPremium () external payable {
-        require(msg.value >= cost_premium);
-        uint change = msg.value - cost_premium;
-        if (change > 0) {
-            msg.sender.transfer(change);
-            emit change_given (msg.sender, change);
-        }
+        require(msg.value == cost_premium);
         premium_customers[msg.sender] = block.number + time_premium;
-        emit premium_acquired (msg.sender, premium_customers[msg.sender]);
+        emit premium_acquired (msg.sender, 0);
+    }
+
+     /* pays for granting a premium account to the user _u */
+    function GiftPremium  (address _u) external payable {
+        require(msg.value == cost_premium);
+        premium_customers[_u] = block.number + time_premium;
+        emit premium_acquired (_u, 1);
+    }
+
+    /* allows to set the last block seen by an account */
+    function SetNotification (address _a, uint _x) external {
+        notifications_to_see[_a] = _x;
     }
     
     /* pay an author a multiple of v views*/
@@ -358,40 +349,32 @@ contract Catalog{
             uint32 tot_views = contents_list[i-1].view_count();
             uint32 to_pay = tot_views - contents_list[i-1].views_already_payed();
             if (to_pay >= v) {
-                contents_list[i-1].owner().transfer(to_pay * cost_content);
+                uint256 price_per_view = contents_list[i-1].price() * GetRate(_t)/50;
+                contents_list[i-1].owner().transfer(to_pay * price_per_view);
                 contents_list[i-1].Payed(to_pay);
-                emit author_payed (_t, to_pay * cost_content);
+                emit author_payed (_t, to_pay * price_per_view);
             }
         }
     }
     
     /* returns the total number of views and the total number of views that has to payed */
-    function GetTotalViews () private view returns (uint, uint) {
-        uint l_length = contents_list.length; 
+    function GetTotalViews () private view returns (uint) {
         uint tot_views = 0;
-        uint tot_already_payed = 0;
-        for (uint i = 0; i < l_length; i++) {
+        for (uint i = 0; i < contents_list.length; i++) {
             tot_views = tot_views + contents_list[i].view_count();
-            tot_already_payed = tot_already_payed + contents_list[i].views_already_payed();
         }
-        return (tot_views, tot_already_payed);
+        return tot_views;
     }
     
     /* the catalog can be destructed */
     function KillCatalog () external byOwner {
-        uint tot_views;
-        uint tot_already_payed;
-        (tot_views, tot_already_payed) = GetTotalViews();
-        uint money_remaining_views = (tot_views - tot_already_payed) * cost_content; 
-        uint money_per_view = (catalog_address.balance - money_remaining_views) / tot_views;
+        uint tot_views = GetTotalViews();
+        uint money_per_view = catalog_address.balance / tot_views;
         for (uint i = 0; i < contents_list.length; i++) {
-            uint remaining_money = (contents_list[i].view_count() - contents_list[i].views_already_payed()) * cost_content;
             uint proportional_money = contents_list[i].view_count() * money_per_view;
-            uint tot_money = remaining_money + proportional_money;
-            contents_list[i].owner().transfer(tot_money);
-            emit author_payed (contents_list[i].title(), tot_money);
+            contents_list[i].owner().transfer(proportional_money);
+            emit author_payed (contents_list[i].title(), proportional_money);
         }
-        emit catalog_destroyed ();
         selfdestruct(catalog_address);
     }
 }

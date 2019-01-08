@@ -31,14 +31,16 @@
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li><a href="find_page.html">SEARCH <span class="glyphicon glyphicon-search"></span></a></li>
-          <li class="active"><a href="personal_page.html">PERSONAL AREA <span class="glyphicon glyphicon-user"></span></a></li>
+          <li class="active"><a href="personal_page.html">PERSONAL AREA <span id="notif" class="glyphicon glyphicon-user"></span></a></li>
         </ul>
       </div>
     </div>
   </nav>
 
   <div class="container" id="address_container">
-    <button type="button" id="butt_setting" class="btn pull-right">SETTINGS <span class="glyphicon glyphicon-cog"></span></button>
+    <button type="button" id="butt_setting" class="btn pull-right">
+      SETTINGS <span class="glyphicon glyphicon-cog"></span>
+    </button>
   </div>
 
   <div class="container" id="type_account">
@@ -62,6 +64,7 @@
       <tbody id="to_consume_rows">
       </tbody>
     </table>
+    <div id="loader1"></div>
     <h3>LIST OF CONTENTS YOU CAN RATE</h3>
     <table class="table table-hover">
       <thead class="thead-dark">
@@ -79,6 +82,7 @@
       <tbody id="to_rate_rows">
       </tbody>
     </table>
+    <div id="loader2"></div>
   </div>
 
   <script src="js/web3.min.js"></script>
@@ -86,14 +90,18 @@
   <script src="js/app.js"></script>
   <script>
     function render() {
+
+      displayNotifications();
+
       var catalogInstance;
-      var this_acc = "<h3>YOUR ADDRESS IS " + App.account + "</h3>";
-      $("#address_container").append(this_acc);
+
       App.contracts.Catalog.deployed().then(function (instance) {
         catalogInstance = instance;
         return catalogInstance.isPremium(App.account);
       }).then(function (is_p) {
         var t_a;
+        var this_acc = "<h3>YOUR ADDRESS IS " + App.account + "</h3>";
+        $("#address_container").append(this_acc);
         if (is_p) {
           catalogInstance.premium_customers(App.account).then(function (exp) {
             web3.eth.getBlockNumber(function (error, bb) {
@@ -132,6 +140,8 @@
                 " + p + " wei</td><td>" + v + "</td><td>" + rateStars + "</td></tr>";
                 $("#to_consume_rows").append(row);
               }
+            }).then(function () {
+              $("#loader1").remove();
             });
 
             contentInstance.has_consumed(App.account).then(async function (has_c) {
@@ -151,6 +161,8 @@
                 $("#to_rate_rows").append(row);
 
               }
+            }).then(function () {
+              $("#loader2").remove();
             });
           });
         });
@@ -158,9 +170,87 @@
       });
 
     }
+
+    function displayNotifications() {
+
+      var catalogInstance;
+      var last_b = 0;
+      var seen_smth = false;
+      App.contracts.Catalog.deployed().then(function (instance) {
+        catalogInstance = instance;
+        return instance.notifications_to_see(App.account);
+      }).then(function (n_not) {
+        last_b = n_not;
+
+        catalogInstance.new_publication({}, {
+          fromBlock: n_not,
+          toBlock: 'latest'
+        }).watch(function (error, event) {
+          DisplayAlert("New Publication", "The content \"" + web3.toAscii(event.args._title) + "\
+          \" has been added to the catalog");
+          seen_smth = true;
+        });
+
+        catalogInstance.content_acquired({}, {
+          fromBlock: n_not,
+          toBlock: 'latest'
+        }).watch(function (error, event) {
+          if (event.args._gifted == 0) {
+            DisplayAlert("Content Acquired", "The content \"" + web3.toAscii(event.args._title) + "\
+          \" has been purchased");
+          } else {
+            DisplayAlert("Content Received", "The content \"" + web3.toAscii(event.args._title) + "\
+          \" has been gifted by account "+ event.args._customer);
+          }
+          seen_smth = true;
+        });
+
+        catalogInstance.premium_acquired({}, {
+          fromBlock: n_not,
+          toBlock: 'latest'
+        }).watch(function (error, event) {
+          if (event.args._gifted == 0) {
+            DisplayAlert("Premium Acquired", "A premium subscription has been purchased");
+          } else {
+            DisplayAlert("Premium Received", "A premium subscription has been gifted \
+            by account "+ event.args._customer);
+          }
+          seen_smth = true;
+        });
+
+        catalogInstance.author_payed({}, {
+          fromBlock: n_not,
+          toBlock: 'latest'
+        }).watch(function (error, event) {
+          DisplayAlert("Author Paid", "The author of \"" + web3.toAscii(event.args._title) + "\
+          \" has been payed for "+ event.args._tot_money);
+          seen_smth = true;
+        });
+
+      }).then(function () {
+        web3.eth.getBlockNumber(function (error, bb) {
+          if (seen_smth) {
+            catalogInstance.SetNotification(App.account, (bb + 1));
+          }
+          $(".badge").remove();
+        });
+      });
+    }
+
+    function DisplayAlert(e1, e2) {
+      var al = "<div class=\"alert alert-info alert-dismissible\" \
+          role= \"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" \
+          aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\
+          <strong>"+ e1 + "! </strong>" + e2 + ".</div>";
+
+      $("#address_container").append(al);
+    }
+
   </script>
   <script>
     $("#butt_setting").click(function () {
+      var loc = "notification_page.html";
+      window.location = loc;
     });
   </script>
 

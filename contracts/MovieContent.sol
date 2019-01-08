@@ -14,5 +14,9 @@ contract MovieContent is BaseContent {
     function SetMovieLength (uint32 _l) external byOwner {
         movie_length = _l;
     }
+
+    function ContentType() public view returns (bytes32) {
+        return g;
+    }
     
 }
