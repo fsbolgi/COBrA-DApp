@@ -8,13 +8,16 @@ App = {
   },
 
   initWeb3: function () {
-    if (typeof web3 !== 'undefined') {
-      // If a web3 instance is already provided by Meta Mask.
-      App.web3Provider = web3.currentProvider;
-      web3 = new Web3(web3.currentProvider);
+    if (typeof web3 != 'undefined') {
+      App.web3Provider = window.ethereum;
+      web3 = new Web3(App.web3Provider);
+      try {
+        ethereum.enable();
+      } catch (error) {
+        console.log(error);
+      }
     } else {
-      // Specify default instance if no web3 instance provided
-      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+      App.web3Provider = new Web3.providers.HttpProvider(App.url);
       web3 = new Web3(App.web3Provider);
     }
     return App.initCatalog();
@@ -99,48 +102,83 @@ function drawStars(r) {
 function showNotifications() {
 
   var catalogInstance;
-  var n_notif = 0;
 
   App.contracts.Catalog.deployed().then(function (instance) {
     catalogInstance = instance;
     return instance.notifications_to_see(App.account);
-  }).then(function (n_not) {
+  }).then(async function (n_not) {
 
-    catalogInstance.new_publication({}, {
-      fromBlock: n_not,
-      toBlock: 'latest'
-    }).watch(function () {
-      n_notif++;
-      insertBadge(n_notif);
-    });
+    var pref_list = await catalogInstance.GetNotifPreferences(App.account);
+    if (pref_list == 0 || pref_list[0] == 0) {
 
-    catalogInstance.content_acquired({}, {
-      fromBlock: n_not,
-      toBlock: 'latest'
-    }).watch(function () {
-      n_notif++;
-      insertBadge(n_notif);
-    });
+      catalogInstance.new_publication({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._owner == App.account || pref_list.includes(event.args._author) || pref_list.includes(event.args._genre)) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
 
-    catalogInstance.premium_acquired({}, {
-      fromBlock: n_not,
-      toBlock: 'latest'
-    }).watch(function () {
-      n_notif++;
-      insertBadge(n_notif);
-    });
+      catalogInstance.content_acquired({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._sender == App.account || event.args._receiver == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
 
-    catalogInstance.author_payed({}, {
-      fromBlock: n_not,
-      toBlock: 'latest'
-    }).watch(function () {
-      n_notif++;
-      insertBadge(n_notif);
-    });
+      catalogInstance.premium_acquired({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._sender == App.account || event.args._receiver == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
+
+      catalogInstance.author_payed({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._owner == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
+
+      catalogInstance.v_reached({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._account == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
+
+      catalogInstance.content_consumed({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._customer == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
+
+      catalogInstance.rate_left({}, {
+        fromBlock: n_not,
+        toBlock: 'latest'
+      }).watch(function (error, event) {
+        if (event.args._customer == App.account) {
+          insertBadge(Number($(".badge").text()) + 1);
+        }
+      });
+
+    }
 
   });
 
-  
+
 
 }
 

@@ -174,66 +174,109 @@
     function displayNotifications() {
 
       var catalogInstance;
-      var last_b = 0;
       var seen_smth = false;
+      var last_block_seen;
       App.contracts.Catalog.deployed().then(function (instance) {
         catalogInstance = instance;
         return instance.notifications_to_see(App.account);
-      }).then(function (n_not) {
-        last_b = n_not;
+      }).then(function (last_b) {
+        last_block_seen = last_b;
+        return catalogInstance.GetNotifPreferences(App.account);
+      }).then(function (pref_list) {
 
-        catalogInstance.new_publication({}, {
-          fromBlock: n_not,
-          toBlock: 'latest'
-        }).watch(function (error, event) {
-          DisplayAlert("New Publication", "The content \"" + web3.toAscii(event.args._title) + "\
-          \" has been added to the catalog");
-          seen_smth = true;
-        });
+        if (pref_list == 0 || pref_list[0] == 0) {
 
-        catalogInstance.content_acquired({}, {
-          fromBlock: n_not,
-          toBlock: 'latest'
-        }).watch(function (error, event) {
-          if (event.args._gifted == 0) {
-            DisplayAlert("Content Acquired", "The content \"" + web3.toAscii(event.args._title) + "\
-          \" has been purchased");
-          } else {
-            DisplayAlert("Content Received", "The content \"" + web3.toAscii(event.args._title) + "\
-          \" has been gifted by account "+ event.args._customer);
+          function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
           }
-          seen_smth = true;
-        });
 
-        catalogInstance.premium_acquired({}, {
-          fromBlock: n_not,
-          toBlock: 'latest'
-        }).watch(function (error, event) {
-          if (event.args._gifted == 0) {
-            DisplayAlert("Premium Acquired", "A premium subscription has been purchased");
-          } else {
-            DisplayAlert("Premium Received", "A premium subscription has been gifted \
-            by account "+ event.args._customer);
+          async function listenEvents() {
+            var events = catalogInstance.allEvents({
+              fromBlock: last_block_seen,
+              toBlock: 'latest'
+            });
+
+            events.watch(function (error, result) {
+              switch (result.event) {
+                case "new_publication":
+                  if (result.args._owner == App.account || pref_list.includes(result.args._author) || pref_list.includes(result.args._genre)) {
+                    DisplayAlert("New Publication", "The content \"" + web3.toAscii(result.args._title) + "\" \
+                  has been added to the catalog");
+                  }
+                  break;
+                case "content_acquired":
+                  if (result.args._sender == App.account || result.args._receiver == App.account) {
+                    if (result.args._gifted == 0) {
+                      DisplayAlert("Content Acquired", "The content \"" + web3.toAscii(result.args._title) + "\"\
+                       has been purchased");
+                    } else {
+                      if (result.args._sender == App.account) {
+                        DisplayAlert("Content Gifted", "The content \"" + web3.toAscii(result.args._title) + "\"\
+                         has been gifted to account "+ result.args._receiver);
+                      } else {
+                        DisplayAlert("Content Received", "The content \"" + web3.toAscii(result.args._title) + "\"\
+                         has been gifted by account "+ result.args._sender);
+                      }
+                    }
+                  }
+                  break;
+                case "premium_acquired":
+                  if (result.args._sender == App.account || result.args._receiver == App.account) {
+                    if (result.args._gifted == 0) {
+                      DisplayAlert("Premium Acquired", "A premium subscription has been purchased");
+                    } else {
+                      if (result.args._sender == App.account) {
+                        DisplayAlert("Premium Gifted", "A premium subscription has been gifted \
+                        to account "+ result.args._receiver);
+                      } else {
+                        DisplayAlert("Premium Received", "A premium subscription has been gifted \
+                        by account "+ result.args._sender);
+                      }
+                    }
+                  }
+                  break;
+                case "author_payed":
+                  if (result.args._owner == App.account) {
+                    DisplayAlert("Author Paid", "You have been paid " + result.args._tot_money + "\
+                    wei for \"" + web3.toAscii(result.args._title) + " \"");
+                  }
+                  break;
+                case "v_reached":
+                  if (result.args._account == App.account) {
+                    DisplayAlert("Views Reached", "You have reached \"" + result.args._v + "\
+                    \" views on the content \"" + web3.toAscii(result.args._title) + "\
+                    \" you can be paid");
+                  }
+                  break;
+                case "content_consumed":
+                  if (result.args._customer == App.account) {
+                    DisplayAlert("Content Consumed", "You have seen \"" + web3.toAscii(result.args._title) + "\
+                    \". Now you can leave a rate");
+                  }
+                  break;
+                case "rate_left":
+                  if (result.args._customer == App.account) {
+                    DisplayAlert("Rate Left", "You have left a rate for \"" + web3.toAscii(result.args._title) + " \"");
+                  }
+                  break;
+              }
+
+              seen_smth = true;
+            });
+
+            await sleep(2000);
+
+            web3.eth.getBlockNumber(function (error, bb) {
+              if (seen_smth) {
+                catalogInstance.SetNotification(App.account, (bb + 1));
+              }
+              $(".badge").remove();
+            });
           }
-          seen_smth = true;
-        });
 
-        catalogInstance.author_payed({}, {
-          fromBlock: n_not,
-          toBlock: 'latest'
-        }).watch(function (error, event) {
-          DisplayAlert("Author Paid", "The author of \"" + web3.toAscii(event.args._title) + "\
-          \" has been payed for "+ event.args._tot_money);
-          seen_smth = true;
-        });
+          listenEvents();
+        }
 
-      }).then(function () {
-        web3.eth.getBlockNumber(function (error, bb) {
-          if (seen_smth) {
-            catalogInstance.SetNotification(App.account, (bb + 1));
-          }
-          $(".badge").remove();
-        });
       });
     }
 
@@ -242,7 +285,6 @@
           role= \"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" \
           aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\
           <strong>"+ e1 + "! </strong>" + e2 + ".</div>";
-
       $("#address_container").append(al);
     }
 

@@ -89,8 +89,8 @@ module.exports = function (deployer) {
 
   function doSomeViews() {
     var titles = [t1, t1, t2, t2, t2, t2, t2, t3, t3, t4, t4, t4, t5, t5, t5, t5, t6];
-    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5],
-    accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4]];
+    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[6], accounts[7], accounts[8], accounts[4], accounts[5], accounts[4],
+    accounts[5], accounts[6], accounts[4], accounts[5], accounts[6], accounts[7], accounts[4]];
     var prices = [ps, ps, pm, pm, pm, pm, pm, pp, pp, po, po, po, ps, ps, ps, ps, pp];
     var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
       content5, content5, content5, content5, content6];
@@ -101,8 +101,8 @@ module.exports = function (deployer) {
   }
 
   function leaveRating() {
-    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5],
-    accounts[4], accounts[5], accounts[4], accounts[5], accounts[4], accounts[5], accounts[4]];
+    var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[6], accounts[7], accounts[8], accounts[4], accounts[5], accounts[4],
+    accounts[5], accounts[6], accounts[4], accounts[5], accounts[6], accounts[7], accounts[4]];
     var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
       content5, content5, content5, content5, content6];
     for (var j = 0; j < 17; j++) {

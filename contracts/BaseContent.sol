@@ -7,7 +7,7 @@ contract BaseContent {
     /* data about the contract itself */
     address public owner; // address of who uploads
     address public content_address; // address of the contract
-    address public catalog; // catalog where the content is published
+    Catalog public catalog; // catalog where the content is published
     
     /* data about the content */
     bytes32 public title; // unique ID
@@ -28,13 +28,7 @@ contract BaseContent {
     mapping (address => bool) private authorized_std;
     mapping (address => uint) private authorized_premium;
     
-    uint32 private v = 100; // number of views required before payment
-
-
-    /* events triggered */
-    event v_reached (uint32 _views_to_be_payed); // reached the number of views to request a payment
-    event content_consumed (address _customer); // customer just consumed this content
-    event rate_left(address _customer); // customer just left a rating for this content
+    uint32 private v = 7; // number of views required before payment
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
@@ -42,7 +36,7 @@ contract BaseContent {
         _;
     }
     modifier byCatalog() {
-        require(msg.sender == catalog);
+        require(msg.sender == address(catalog));
         _;
     }
     modifier byAuthorized() {
@@ -56,7 +50,7 @@ contract BaseContent {
     }
     
     /* constructor function of the content manager */
-    constructor (address _catalog, bytes32 _title, bytes32 _author, bytes32 _gen, uint _price) public {
+    constructor (Catalog _catalog, bytes32 _title, bytes32 _author, bytes32 _gen, uint _price) public {
         owner = msg.sender;
         content_address = this;
         catalog = _catalog;
@@ -102,14 +96,14 @@ contract BaseContent {
         if (authorized_std[msg.sender]) {
             view_count ++;
             if (view_count % v == 0) {
-                emit v_reached (view_count - views_already_payed);
+                catalog.EmitEvent(0, owner, title, (view_count - views_already_payed)); // v_reached
             }
             delete authorized_std[msg.sender];
         } else {
             delete authorized_premium[msg.sender];
         }
         has_consumed[msg.sender] = true;
-        emit content_consumed (msg.sender);
+        catalog.EmitEvent(1, msg.sender, title, 0); //content_consumed
     }
 
     /* authorized customers can consume the content */
@@ -119,7 +113,7 @@ contract BaseContent {
         }
         nVotes ++;
         delete has_consumed[msg.sender];
-        emit rate_left (msg.sender);
+        catalog.EmitEvent(2, msg.sender, title, 0); //rate_left
     }
     
     function SetSubgenre (bytes32 _s) external byOwner {

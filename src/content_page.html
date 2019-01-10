@@ -83,6 +83,9 @@
         </div>
     </div>
 
+    <div class="container" id="be_paid_container">
+    </div>
+
     <script src="js/web3.min.js"></script>
     <script src="js/truffle-contract.js"></script>
     <script src="js/app.js"></script>
@@ -175,10 +178,10 @@
                     $("#table_content").append(table);
 
                     if (nv != 0) {
-                        r1 = r1 / nv;
-                        r2 = r2 / nv;
-                        r3 = r3 / nv;
-                        r4 = r4 / nv;
+                        r1 = Math.round(r1 / nv * 10) / 10;
+                        r2 = Math.round(r2 / nv * 10) / 10;
+                        r3 = Math.round(r3 / nv * 10) / 10;
+                        r4 = Math.round(r4 / nv * 10) / 10;
                     }
                     var table_rate = "<tr><td scope=\"row\">OVERALL</td><td scope=\"row\">\
                         "+ drawStars(Math.floor(r1)) + " " + r1 + "</td></tr>\
@@ -196,9 +199,17 @@
 
                     contentInstance.owner().then(async function (ow) {
                         if (ow == App.account) {
-                            var b = "<button type=\"button\" class=\"btn btn-danger btn-sm \
-                            pull-right\" id=\"butt_del_cat\">DELETE CONTENT</button>";
-                            $("#del_cont_container").append(b);
+                            var b = "<button type=\"button\" class=\"btn btn-warning btn-sm \
+                            pull-left\" id=\"butt_be_paid\" disabled>GET VIEWS REWARD</button>";
+                            $("#be_paid_container").append(b);
+
+                            var tot_views = await contentInstance.view_count();
+                            var already_paid = await contentInstance.views_already_payed();
+                            var to_be_paid = tot_views - already_paid;
+                            var limit_views = await catalogInstance.v();
+                            if (to_be_paid >= limit_views) {
+                                $(butt_be_paid).prop("disabled", false);
+                            }
                         }
                     });
                 });
@@ -238,16 +249,22 @@
             });
         });
 
-        $("#title_content").on("click", "#butt_consume", function (t) {
+        $("#title_content").on("click", "#butt_consume", function () {
             contentInstance.ConsumeContent().then(function () {
                 var loc = "personal_page.html";
                 window.location = loc;
             });
         });
 
-        $("#title_content").on("click", "#butt_rate", function (t) {
+        $("#title_content").on("click", "#butt_rate", function () {
             var loc = "rate_page.html?title=" + (uri_dec);
             window.location = loc;
+        });
+
+        $("#be_paid_container").on("click", "#butt_be_paid", function (e) {
+            catalogInstance.PayAuthor(t).then(function () {
+                $(e.target).prop("disabled", true);
+            });
         });
     </script>
 

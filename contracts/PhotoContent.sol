@@ -8,7 +8,7 @@ contract PhotoContent is BaseContent {
     bytes32 public g = 0x50686f746f000000000000000000000000000000000000000000000000000000;
 
     
-    constructor (address _catalog, bytes32 _title, bytes32 _author, uint _price) BaseContent (_catalog, _title, _author, g, _price) public {
+    constructor (Catalog _catalog, bytes32 _title, bytes32 _author, uint _price) BaseContent (_catalog, _title, _author, g, _price) public {
         n_pixel = 0;
     }
     

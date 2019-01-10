@@ -20,13 +20,17 @@ contract Catalog{
     /* utilities variables */
     uint private time_premium = 40000; // premium lasts approximately one week
     uint public cost_premium = 0.25 ether; // premium costs about 20 euro
-    uint16 private v = 100; // number of views required before payment
+    uint16 public v = 7; // number of views required before payment
     
     /* events triggered */
-    event new_publication (bytes32 _title, bytes32 _author, bytes32 _genre);
-    event content_acquired (bytes32 _title, address _customer, uint32 _gifted);
-    event premium_acquired (address _customer, uint32 _gifted);
-    event author_payed (bytes32 _t, uint _tot_money);
+    event new_publication (bytes32 _title, bytes32 _author, bytes32 _genre, address _owner);
+    event content_acquired (bytes32 _title, address _sender, address _receiver, uint32 _gifted);
+    event premium_acquired (address _sender, address _receiver, uint32 _gifted);
+    event author_payed (bytes32 _t, address _owner, uint _tot_money);
+    event v_reached (address _account, bytes32 _title, uint _v); // reached the number of views to request a payment
+    event content_consumed (address _customer, bytes32 _title); // customer just consumed this content
+    event rate_left(address _customer, bytes32 _title); // customer just left a rating for this content
+
 
     /* modifiers that enforce that some functions are called just by specif agents */
     modifier byOwner() {
@@ -95,6 +99,17 @@ contract Catalog{
         notifications_preferences[_u] = _list;
     }
 
+    function EmitEvent(uint _eventID, address _account, bytes32 _t, uint _v) public {
+
+        if (_eventID == 0) {
+            emit v_reached(_account, _t, _v);
+        } else if (_eventID == 1) {
+            emit content_consumed(_account, _t);
+        } else {
+            emit rate_left(_account, _t);
+        }
+    }
+
 
     /* returns the average rating for a content */ 
     function GetRate (bytes32 _t) public view returns (uint32) {
@@ -140,7 +155,7 @@ contract Catalog{
         bytes32[] memory titles_list = new bytes32[](x);
         if (l_length > 0 && x != 0) {
             require(x <= l_length);
-            for (uint i = l_length - 1; i>= l_length-x; i--) {
+            for (uint i = l_length - 1; i >= l_length-x; i--) {
                 titles_list[l_length - 1 - i] = contents_list[i].title();
                 if (i == 0) {
                     return titles_list;
@@ -227,7 +242,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) * 10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
@@ -245,7 +260,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.genre() == _g && bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) * 10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
@@ -263,7 +278,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             BaseContent bc = contents_list[i];
             if (bc.author() == _a && bc.nVotes() != 0 ) {
-                uint32 r = (_y < 4)? ((bc.feed(_y) *10) / bc.nVotes()) : GetRate(bc.title());
+                uint32 r = (_y < 4)? ((bc.feed(_y) * 10) / bc.nVotes()) : GetRate(bc.title());
                 if (r > highest_rating) {
                     most_rated = bc.title();
                     highest_rating = r;
@@ -289,7 +304,7 @@ contract Catalog{
         require (cm.owner() == msg.sender && cm.catalog() == catalog_address);
         contents_list.push(cm);
         position_content[cm.title()] = contents_list.length;
-        emit new_publication (cm.title(), cm.author(), cm.genre());
+        emit new_publication (cm.title(), cm.author(), cm.genre(), cm.owner());
         return contents_list.length;
     }
     
@@ -299,7 +314,7 @@ contract Catalog{
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].Authorize(msg.sender);
-            emit content_acquired (_t, msg.sender, 0);
+            emit content_acquired (_t, msg.sender, msg.sender, 0);
         }
     }
     
@@ -309,7 +324,7 @@ contract Catalog{
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].AuthorizePremium(msg.sender, premium_customers[msg.sender]);
-            emit content_acquired (_t, msg.sender, 0);
+            emit content_acquired (_t, msg.sender, msg.sender, 0);
         }
     }
     
@@ -319,7 +334,7 @@ contract Catalog{
         uint i = position_content[_t];
         if (i != 0) {
             contents_list[i-1].Authorize(_u);
-            emit content_acquired (_t, msg.sender, 1);
+            emit content_acquired (_t, msg.sender, _u, 1);
         }
     }
        
@@ -327,14 +342,14 @@ contract Catalog{
     function BuyPremium () external payable {
         require(msg.value == cost_premium);
         premium_customers[msg.sender] = block.number + time_premium;
-        emit premium_acquired (msg.sender, 0);
+        emit premium_acquired (msg.sender, msg.sender, 0);
     }
 
      /* pays for granting a premium account to the user _u */
     function GiftPremium  (address _u) external payable {
         require(msg.value == cost_premium);
         premium_customers[_u] = block.number + time_premium;
-        emit premium_acquired (_u, 1);
+        emit premium_acquired (msg.sender, _u, 1);
     }
 
     /* allows to set the last block seen by an account */
@@ -352,7 +367,7 @@ contract Catalog{
                 uint256 price_per_view = contents_list[i-1].price() * GetRate(_t)/50;
                 contents_list[i-1].owner().transfer(to_pay * price_per_view);
                 contents_list[i-1].Payed(to_pay);
-                emit author_payed (_t, to_pay * price_per_view);
+                emit author_payed (_t, contents_list[i-1].owner(), to_pay * price_per_view);
             }
         }
     }
@@ -373,7 +388,7 @@ contract Catalog{
         for (uint i = 0; i < contents_list.length; i++) {
             uint proportional_money = contents_list[i].view_count() * money_per_view;
             contents_list[i].owner().transfer(proportional_money);
-            emit author_payed (contents_list[i].title(), proportional_money);
+            emit author_payed (contents_list[i].title(), contents_list[i-1].owner(), proportional_money);
         }
         selfdestruct(catalog_address);
     }
