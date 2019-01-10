@@ -7,7 +7,6 @@ var SongContent = artifacts.require("./SongContent.sol");
 
 module.exports = function (deployer) {
 
-  // variables declarations
   var catalogInstance, content1, content2, content3, content4, content5, content6;
   var accounts;
   var t1, t2, t3, t4, t5, t6;
@@ -18,29 +17,28 @@ module.exports = function (deployer) {
   deployer.then(async () => {
 
     accounts = web3.eth.accounts;
-    console.log("############ SAVED ACCOUNTS " + accounts[1]);
+    console.log("############ SAVED ACCOUNTS ");
 
     createParameters();
-    console.log("############ CREATED PARAMS " + t6);
+    console.log("############ CREATED PARAMS ");
 
     catalogInstance = await deployer.deploy(Catalog, { from: accounts[1] });
-    console.log("############ CATALOG " + catalogInstance.address);
+    console.log("############ CATALOG ");
 
     await deployContents();
-    console.log("############ CONTENTS " + content6.address);
+    console.log("############ CONTENTS ");
 
-    var l = await addContentsToCat();
-    console.log("############ ADD CONTENTS " + l);
+    await addContentsToCat();
+    console.log("############ ADD CONTENTS ");
 
     await doSomeViews();
-    console.log("############ DO SOME VIEWS " + await catalogInstance.GetMostPopularByAuthor(a1));
+    console.log("############ DO SOME VIEWS ");
 
     await leaveRating();
-    console.log("############ LEAVE SOME VOTE " + await catalogInstance.GetMostRated(10));
+    console.log("############ LEAVE SOME VOTE ");
   })
 
   function createParameters() {
-    // create titles
     t1 = web3.fromAscii("Pretty Shining People");
     t2 = web3.fromAscii("Harry Potter");
     t3 = web3.fromAscii("Beautiful Landscape");
@@ -48,18 +46,15 @@ module.exports = function (deployer) {
     t5 = web3.fromAscii("Happy");
     t6 = web3.fromAscii("Bowl of Fruit");
 
-    // create authors
     a1 = web3.fromAscii("George Ezra");
     a2 = web3.fromAscii("David Yates");
     a3 = web3.fromAscii("P.H. Othographer");
     a4 = web3.fromAscii("Agatha Christie");
     a5 = web3.fromAscii("Pharrell");
 
-    // create genres
     g1 = web3.fromAscii("Book");
     g2 = web3.fromAscii("Photo");
 
-    // create prices
     ps = 30000000000000000;
     pm = 9000000000000000;
     pp = 8500000000000000;
@@ -92,7 +87,7 @@ module.exports = function (deployer) {
     var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[6], accounts[7], accounts[8], accounts[4], accounts[5], accounts[4],
     accounts[5], accounts[6], accounts[4], accounts[5], accounts[6], accounts[7], accounts[4]];
     var prices = [ps, ps, pm, pm, pm, pm, pm, pp, pp, po, po, po, ps, ps, ps, ps, pp];
-    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
+    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4,
       content5, content5, content5, content5, content6];
     for (var j = 0; j < 17; j++) {
       catalogInstance.GetContent(titles[j], { from: acc[j], value: prices[j] });
@@ -103,7 +98,7 @@ module.exports = function (deployer) {
   function leaveRating() {
     var acc = [accounts[4], accounts[5], accounts[4], accounts[5], accounts[6], accounts[7], accounts[8], accounts[4], accounts[5], accounts[4],
     accounts[5], accounts[6], accounts[4], accounts[5], accounts[6], accounts[7], accounts[4]];
-    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4, 
+    var conts = [content1, content1, content2, content2, content2, content2, content2, content3, content3, content4, content4, content4,
       content5, content5, content5, content5, content6];
     for (var j = 0; j < 17; j++) {
       var rates;

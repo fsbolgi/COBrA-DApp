@@ -106,34 +106,8 @@
   <script src="js/web3.min.js"></script>
   <script src="js/truffle-contract.js"></script>
   <script src="js/app.js"></script>
-  <script>
-    function render() {
-    }
-  </script>
-  <script>
-    var catalogInstance;
-    $(".butt_buy_premium").click(function () {
-      App.contracts.Catalog.deployed().then(async function (instance) {
-        catalogInstance = instance;
-        return instance.cost_premium();
-      }).then(function (cp) {
-        return catalogInstance.BuyPremium({ from: App.account, value: cp });
-      }).then(function () {
-        var loc = "personal_page.html";
-        window.location = loc;
-      });
-    });
-    $(".butt_gift_premium").click(function () {
-      // read the to section
-      var addr = document.getElementById("address_gift").value;
-      App.contracts.Catalog.deployed().then(async function (instance) {
-        catalogInstance = instance;
-        return instance.cost_premium();
-      }).then(function (cp) {
-        catalogInstance.GiftPremium(addr, { from: App.account, value: cp });
-      });
-    });
-  </script>
+  <script src="js/utilities.js"></script>
+  <script src="js/premium_page.js"></script>
 </body>
 
 </html>
