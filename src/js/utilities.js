@@ -103,3 +103,47 @@ function drawStars(r) {
     }
     return stars;
 }
+
+function InsertHeader(table_name, rows_name, container_name) {
+    var tab_header = "<div class=\"container\"><table class=\"table table-hover " + table_name + "\">\
+    <thead><tr><th scope=\"col\">#</th><th scope=\"col\">TITLE</th><th scope=\"col\">\
+    AUTHOR</th><th scope=\"col\">GENRE</th><th scope=\"col\">PRICE</th><th scope=\"col\">\
+    VIEWS</th><th scope=\"col\">RATING</th></tr></thead><tbody \
+    id=\""+ rows_name + "\"></tbody></table></div>";
+    $(container_name).append(tab_header);
+}
+
+async function InsertRow(t, rows_name) {
+    var a, g, p, v, r, position;
+    [a, g, p, v, r, position] = await Promise.all([catalogInstance.GetAuthor(t),
+    catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
+    catalogInstance.GetViews(t), catalogInstance.GetRate(t),
+    catalogInstance.position_content(t)]);
+    var genreIcon = getIcon(g);
+    var rateStars = drawStars(Math.floor(r / 10));
+    var loc = "content_page.html?title=" + (position);
+    var urlp = encodeURI(loc);
+    var row = TableRow(urlp, position, web3.toAscii(t), web3.toAscii(a), genreIcon, web3.toAscii(g), p, v, rateStars);
+    $("#" + rows_name).append(row);
+}
+
+function TableRow(urlp, ix, t, a, icon, g, p, v, r) {
+    return "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\"><th scope=\"row\">\
+    " + ix + "</th><td>" + t + "</td><td>" + a + "</td><td><span class=\"glyphicon " + icon + "\"></span> \
+    " + g + "</td><td>" + p + " wei</td><td>" + v + "</td><td>" + r + "</td></tr>";
+}
+
+function DangerAlert(message) {
+    return "<div class=\"alert alert-danger alert-dismissible\">\
+    <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
+    <strong>Error! </strong>"+ message + "</div>";
+}
+
+function InfoAlert(e1, e2, container) {
+    var al = "<div class=\"alert alert-info alert-dismissible\" \
+          role= \"alert\"><button type=\"button\" class=\"close\" data-dismiss=\"alert\" \
+          aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\
+          <strong>"+ e1 + "! </strong>" + e2 + ".</div>";
+    $("#"+container).append(al);
+
+}

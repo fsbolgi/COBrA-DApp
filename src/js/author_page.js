@@ -1,8 +1,7 @@
 /* VARIABLES DECLARATION */
 
-var catalogInstance;
+var catalogInstance, new_content;
 var genre_field_present = false;
-var new_content;
 
 /* RENDER FUNCTION */
 
@@ -13,27 +12,14 @@ function render() {
         const promises = ll.map(async function (t, ix) {
             var ow = await catalogInstance.GetOwner(t);
             if (ow == App.account) {
-                var a, g, p, v, r;
-                [a, g, p, v, r] = await Promise.all([catalogInstance.GetAuthor(t),
-                catalogInstance.GetGenre(t), catalogInstance.GetPrice(t),
-                catalogInstance.GetViews(t), catalogInstance.GetRate(t)]);
-                var genreIcon = await getIcon(g);
-                var rateStars = await drawStars(Math.floor(r / 10));
-                var loc = "content_page.html?title=" + (ix + 1);
-                var urlp = encodeURI(loc);
-                var row = "<tr class=\"clickable-row\"  onclick=\"window.location='" + urlp + "';\"\
-                ><th scope=\"row\">" + (ix + 1) + "</th><td>" + web3.toAscii(t) + "</td><td>\
-                " + web3.toAscii(a) + "</td><td><span class=\"glyphicon " + genreIcon + "\"></span> \
-                " + web3.toAscii(g) + "</td><td>" + p + " wei</td><td>" + v + "</td><td>\
-                " + rateStars + "</td></tr>";
-                $("#author-rows").append(row);
+                InsertRow(t, "author-rows");
             }
         });
         await Promise.all(promises);
     });
 }
 
-/* BUTTONS EVENTS */
+/* BUTTONS EVENTS */ 
 
 $(".genre_option").click(function (g) {
     if ($("#more_info") != null) {
@@ -76,7 +62,7 @@ $(".butt_deploy_contract").click(async function () {
     }
     var p = document.getElementById("price_form").value;
     if (t == 0 || a == 0 || g == 0 || p == 0) {
-        var al = alertCreation("All required fields must be filled.");
+        var al = DangerAlert("All required fields must be filled.");
         $(al).insertAfter("#info_new_cont");
     } else {
         var position = await catalogInstance.position_content(t_byte);
@@ -101,7 +87,7 @@ $(".butt_deploy_contract").click(async function () {
             }
             addMoreInformation(g);
         } else {
-            var al = alertCreation("The title inserted is already present in the \
+            var al = DangerAlert("The title inserted is already present in the \
                 catalog, choose a unique name.");
             $(al).insertAfter("#info_new_cont");
         }
@@ -113,17 +99,13 @@ $(".butt_add_to_catalog").click(function () {
     App.contracts.Catalog.deployed().then(async function (instance) {
         await instance.AddContent(new_content.address, { from: App.account });
         instance.GetLengthCatalog().then(function (l) {
-            var loc = "content_page.html?title=" + (l);
+            var loc = "author_page.html?title=" + (l);
             window.location = loc;
         });
     });
 });
 
-function alertCreation(message) {
-    return "<div class=\"alert alert-danger alert-dismissible\">\
-    <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
-    <strong>Error! </strong>"+ message + "</div>";
-}
+/* UTILITY FUNCTIONS */
 
 function addMoreInformation(g) {
     var subg = document.getElementById("subgenre_form").value;

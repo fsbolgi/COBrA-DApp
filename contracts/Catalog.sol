@@ -137,6 +137,9 @@ contract Catalog {
         if (l_length > 0 && x > 0) {
             for (uint i = l_length - 1; i >= l_length-x; i--) {
                 titles_list[l_length - 1 - i] = contents_list[i].title();
+                if (i == 0) {
+                    return titles_list;
+                }
             }
         }
         return titles_list;
@@ -149,6 +152,9 @@ contract Catalog {
             for (uint i = l_length - 1; i >= 0; i--) {
                 if (contents_list[i].genre() == _g) {
                     return contents_list[i].title();
+                }
+                if (i == 0) {
+                    return 0x0;
                 }
             }
         }
@@ -175,6 +181,9 @@ contract Catalog {
             for (uint i = l_length - 1; i >= 0; i--) {
                 if (contents_list[i].author() == _a) {
                     return contents_list[i].title();
+                }
+                if (i == 0) {
+                    return 0x0;
                 }
             }
         }

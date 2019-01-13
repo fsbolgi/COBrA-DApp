@@ -1,4 +1,8 @@
+/* VARIABLES DECLARATION */
+
 var contentInstance;
+
+/* RENDER FUNCTION */
 
 function render() {
     var url_string = window.location.href;
@@ -19,12 +23,16 @@ function render() {
             $("#title_content").append(title_string);
 
             contentInstance.CanVote().then(async function (is_a) {
-                $(".butt_rate").prop("disabled", false);
+                if (is_a) {
+                    $(".butt_rate").prop("disabled", false);
+                }
             });
         });
     });
 
 }
+
+/* BUTTONS EVENTS */
 
 $(".butt_rate").click(function () {
     $(".alert").remove();
@@ -33,9 +41,7 @@ $(".butt_rate").click(function () {
     var price_val = $('.container_price input:radio:checked').val();
     var details_val = $('.container_details input:radio:checked').val();
     if (overall_val == null || quality_val == null || price_val == null || details_val == null) {
-        var al = "<div class=\"alert alert-danger alert-dismissible\">\
-        <a class=\"close\" data-dismiss=\"alert\" aria-label=\"close\">&times;</a>\
-        <strong>Error!</strong> All fields must be filled.</div>";
+        var al = DangerAlert("All fields must be filled.")
         $("#title_content").append(al);
     } else {
         contentInstance.LeaveRate([overall_val, quality_val, price_val, details_val]).then(function () {
