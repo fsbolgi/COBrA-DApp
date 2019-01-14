@@ -88,6 +88,8 @@ $(".butt_gift_content").click(async function () {
     var addr = document.getElementById("address_gift").value;
     var price = await catalogInstance.GetPrice(t);
     catalogInstance.GiftContent(t, addr, { from: App.account, value: price });
+    var loc = "personal_page.html";
+    window.location = loc;
 });
 
 $("#title_content").on("click", "#butt_consume", function () {

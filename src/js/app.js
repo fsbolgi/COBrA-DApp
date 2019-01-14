@@ -29,7 +29,7 @@ App = {
       App.contracts.Catalog.setProvider(App.web3Provider);
       return App.initContents();
     });
-  },
+  }, 
 
   initContents: async function () {
     await Promise.all([$.getJSON("BaseContent.json", function (baseContent) {

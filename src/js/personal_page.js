@@ -56,21 +56,6 @@ $("#butt_setting").click(function () {
 
 /* UTILITY FUNCTIONS */
 
-function displayNotifications() {
-
-    catalogInstance.notifications_to_see(App.account).then(function (last_b) {
-        last_block_seen = last_b;
-        return catalogInstance.GetNotifPreferences(App.account);
-    }).then(function (pref_list) {
-
-        if (pref_list == 0 || pref_list[0] == 0) {
-
-            listenEvents(last_block_seen, pref_list);
-        }
-
-    });
-}
-
 function DisplayAccountType(is_p) {
     var t_a;
     var this_acc = "<h3>YOUR ADDRESS IS " + App.account + "</h3>";
@@ -88,6 +73,21 @@ function DisplayAccountType(is_p) {
     }
 }
 
+function displayNotifications() {
+
+    catalogInstance.notifications_to_see(App.account).then(function (last_b) {
+        last_block_seen = last_b;
+        return catalogInstance.GetNotifPreferences(App.account);
+    }).then(function (pref_list) {
+
+        if (pref_list == 0 || pref_list[0] == 0) {
+
+            listenEvents(last_block_seen, pref_list);
+        }
+
+    });
+}
+
 async function listenEvents(last_block_seen, pref_list) {
     var events = catalogInstance.allEvents({
         fromBlock: last_block_seen,
@@ -96,7 +96,6 @@ async function listenEvents(last_block_seen, pref_list) {
 
     events.watch(function (error, result) {
         FilterNotifications(result, pref_list);
-        seen_smth = true;
     });
 
     await sleep(2000);
@@ -119,6 +118,7 @@ function FilterNotifications(result, pref_list) {
             if (result.args._owner == App.account || pref_list.includes(result.args._author) || pref_list.includes(result.args._genre)) {
                 InfoAlert("New Publication", "The content \"" + web3.toAscii(result.args._title) + "\" \
                 has been added to the catalog", "address_container");
+                seen_smth = true;
             }
             break;
         case "content_acquired":
@@ -126,13 +126,16 @@ function FilterNotifications(result, pref_list) {
                 if (result.args._gifted == 0) {
                     InfoAlert("Content Acquired", "The content \"" + web3.toAscii(result.args._title) + "\"\
                     has been purchased", "address_container");
+                    seen_smth = true;
                 } else {
                     if (result.args._sender == App.account) {
                         InfoAlert("Content Gifted", "The content \"" + web3.toAscii(result.args._title) + "\"\
                         has been gifted to account "+ result.args._receiver, "address_container");
+                        seen_smth = true;
                     } else {
                         InfoAlert("Content Received", "The content \"" + web3.toAscii(result.args._title) + "\"\
                         has been gifted by account "+ result.args._sender, "address_container");
+                        seen_smth = true;
                     }
                 }
             }
@@ -141,13 +144,16 @@ function FilterNotifications(result, pref_list) {
             if (result.args._sender == App.account || result.args._receiver == App.account) {
                 if (result.args._gifted == 0) {
                     InfoAlert("Premium Acquired", "A premium subscription has been purchased", "address_container");
+                    seen_smth = true;
                 } else {
                     if (result.args._sender == App.account) {
                         InfoAlert("Premium Gifted", "A premium subscription has been gifted \
                         to account "+ result.args._receiver, "address_container");
+                        seen_smth = true;
                     } else {
                         InfoAlert("Premium Received", "A premium subscription has been gifted \
                     by account "+ result.args._sender, "address_container");
+                    seen_smth = true;
                     }
                 }
             }
@@ -156,6 +162,7 @@ function FilterNotifications(result, pref_list) {
             if (result.args._owner == App.account) {
                 InfoAlert("Author Paid", "You have been paid " + result.args._tot_money + "\
                 wei for \"" + web3.toAscii(result.args._title) + " \"", "address_container");
+                seen_smth = true;
             }
             break;
         case "min_v_reached":
@@ -163,17 +170,20 @@ function FilterNotifications(result, pref_list) {
                 InfoAlert("Views Reached", "You have reached \"" + result.args._v + "\
                 \" views on the content \"" + web3.toAscii(result.args._title) + "\
                 \" you can be paid", "address_container");
+                seen_smth = true;
             }
             break;
         case "content_consumed":
             if (result.args._customer == App.account) {
                 InfoAlert("Content Consumed", "You have seen \"" + web3.toAscii(result.args._title) + "\
                 \". Now you can leave a rate", "address_container");
+                seen_smth = true;
             }
             break;
         case "rate_left":
             if (result.args._customer == App.account) {
                 InfoAlert("Rate Left", "You have left a rate for \"" + web3.toAscii(result.args._title) + " \"", "address_container");
+                seen_smth = true;
             }
             break;
     }
