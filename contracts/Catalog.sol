@@ -14,8 +14,8 @@ contract Catalog {
     BaseContent[] public contents_list; // list of all the contents in the catalog
     mapping (bytes32 => uint) public position_content; // map from title to position + 1
     uint private time_premium = 40000; // premium lasts approximately one week
-    uint public cost_premium = 0.25 ether; // premium costs about 20 euro
-    uint32 public min_v = 7; // number of views required before payment
+    uint public cost_premium = 0.15 ether; // premium costs about 20 euro
+    uint32 public min_v = 100; // number of views required before payment
     
     /* data about the accounts */
     mapping (address => uint) public premium_customers; // map from premium to expiration date
@@ -279,7 +279,7 @@ contract Catalog {
     /* STATE MODIFYING FUNCTIONS */
 
     /* allows to set the last block seen by an account */
-    function SetNotification (address _a, uint _x) external {
+    function SetNotification(address _a, uint _x) external {
         notifications_to_see[_a] = _x;
     }
 
@@ -300,7 +300,7 @@ contract Catalog {
     }
     
     /* submits a new content _c to the catalog */
-    function AddContent (BaseContent _c) external {
+    function AddContent(BaseContent _c) external {
         BaseContent cm = _c;
         require (cm.owner() == msg.sender && cm.catalog() == catalog_address);
         contents_list.push(cm);
@@ -309,7 +309,7 @@ contract Catalog {
     }
     
     /* standard accounts pays to access content _t */
-    function GetContent (bytes32 _t) external payable {
+    function GetContent(bytes32 _t) external payable {
         require(msg.value == GetPrice(_t));
         uint i = position_content[_t];
         if (i != 0) {
@@ -319,7 +319,7 @@ contract Catalog {
     }
     
     /* premium accounts can requests access to content _t without paying */
-    function GetContentPremium (bytes32 _t) external {
+    function GetContentPremium(bytes32 _t) external {
         require(isPremium(msg.sender));
         uint i = position_content[_t];
         if (i != 0) {
@@ -329,7 +329,7 @@ contract Catalog {
     }
     
     /* pays for granting access to a content _t to the user _u */
-    function GiftContent  (bytes32 _t, address _u) external payable {
+    function GiftContent(bytes32 _t, address _u) external payable {
         require(msg.value == GetPrice(_t));
         uint i = position_content[_t];
         if (i != 0) {
@@ -339,21 +339,21 @@ contract Catalog {
     }
        
     /* buys a new premium subscription */
-    function BuyPremium () external payable {
+    function BuyPremium() external payable {
         require(msg.value == cost_premium);
         premium_customers[msg.sender] = block.number + time_premium;
         emit premium_acquired (msg.sender, msg.sender, 0);
     }
 
      /* pays for granting a premium account to the user _u */
-    function GiftPremium  (address _u) external payable {
+    function GiftPremium(address _u) external payable {
         require(msg.value == cost_premium);
         premium_customers[_u] = block.number + time_premium;
         emit premium_acquired (msg.sender, _u, 1);
     }
     
     /* pay an author a multiple of v views*/
-    function PayAuthor (bytes32 _t) external {
+    function PayAuthor(bytes32 _t) external {
         uint i = position_content[_t];
         if (i != 0) {
             uint32 tot_views = contents_list[i-1].view_count();
@@ -368,7 +368,7 @@ contract Catalog {
     }
     
     /* returns the total number of views and the total number of views that has to payed */
-    function GetTotalViews () private view returns (uint) {
+    function GetTotalViews() private view returns (uint) {
         uint tot_views = 0;
         for (uint i = 0; i < GetLengthCatalog(); i++) {
             tot_views = tot_views + contents_list[i].view_count();
@@ -377,7 +377,7 @@ contract Catalog {
     }
     
     /* the catalog can be destructed */
-    function KillCatalog () external {
+    function KillCatalog() external {
         require(msg.sender == owner);
         uint tot_views = GetTotalViews();
         uint money_per_view = catalog_address.balance / tot_views;

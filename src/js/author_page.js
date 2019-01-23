@@ -99,7 +99,7 @@ $(".butt_add_to_catalog").click(function () {
     App.contracts.Catalog.deployed().then(async function (instance) {
         await instance.AddContent(new_content.address, { from: App.account });
         instance.GetLengthCatalog().then(function (l) {
-            var loc = "author_page.html?title=" + (l);
+            var loc = "content_page.html?title=" + (l);
             window.location = loc;
         });
     });
