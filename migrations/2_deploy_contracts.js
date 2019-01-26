@@ -4,7 +4,6 @@ var MovieContent = artifacts.require("./MovieContent.sol");
 var PhotoContent = artifacts.require("./PhotoContent.sol");
 var SongContent = artifacts.require("./SongContent.sol");
 
-
 module.exports = function (deployer) {
 
   var catalogInstance, content1, content2, content3, content4, content5, content6;
@@ -16,7 +15,7 @@ module.exports = function (deployer) {
 
   deployer.then(async () => {
 
-    accounts = web3.eth.accounts;
+    accounts = await web3.eth.getAccounts();
     console.log("############ SAVED ACCOUNTS ");
 
     createParameters();
@@ -39,26 +38,26 @@ module.exports = function (deployer) {
   })
 
   function createParameters() {
-    t1 = web3.fromAscii("Pretty Shining People");
-    t2 = web3.fromAscii("Harry Potter");
-    t3 = web3.fromAscii("Beautiful Landscape");
-    t4 = web3.fromAscii("And Then There Where None");
-    t5 = web3.fromAscii("Happy");
-    t6 = web3.fromAscii("Bowl of Fruit");
+    t1 = web3.utils.fromAscii("Pretty Shining People");
+    t2 = web3.utils.fromAscii("Harry Potter");
+    t3 = web3.utils.fromAscii("Beautiful Landscape");
+    t4 = web3.utils.fromAscii("And Then There Where None");
+    t5 = web3.utils.fromAscii("Happy");
+    t6 = web3.utils.fromAscii("Bowl of Fruit");
 
-    a1 = web3.fromAscii("George Ezra");
-    a2 = web3.fromAscii("David Yates");
-    a3 = web3.fromAscii("P.H. Othographer");
-    a4 = web3.fromAscii("Agatha Christie");
-    a5 = web3.fromAscii("Pharrell");
+    a1 = web3.utils.fromAscii("George Ezra");
+    a2 = web3.utils.fromAscii("David Yates");
+    a3 = web3.utils.fromAscii("P.H. Othographer");
+    a4 = web3.utils.fromAscii("Agatha Christie");
+    a5 = web3.utils.fromAscii("Pharrell");
 
-    g1 = web3.fromAscii("Book");
-    g2 = web3.fromAscii("Photo");
+    g1 = web3.utils.fromAscii("Book");
+    g2 = web3.utils.fromAscii("Photo");
 
-    ps = 30000000000000000;
-    pm = 9000000000000000;
-    pp = 8500000000000000;
-    po = 42000000000000000;
+    ps = web3.utils.toHex(20e15);
+    pm = web3.utils.toHex(11e16);
+    pp = web3.utils.toHex(85e14);
+    po = web3.utils.toHex(42e15);
   }
 
   async function deployContents() {
