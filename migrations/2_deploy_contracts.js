@@ -4,7 +4,7 @@ var MovieContent = artifacts.require("./MovieContent.sol");
 var PhotoContent = artifacts.require("./PhotoContent.sol");
 var SongContent = artifacts.require("./SongContent.sol");
 
-module.exports = function (deployer) {
+module.exports = function (deployer, network) {
 
   var catalogInstance, content1, content2, content3, content4, content5, content6;
   var accounts;
@@ -15,27 +15,33 @@ module.exports = function (deployer) {
 
   deployer.then(async () => {
 
-    accounts = await web3.eth.getAccounts();
-    console.log("############ SAVED ACCOUNTS ");
+    if (network == "development") {
+      accounts = await web3.eth.getAccounts();
+      console.log("############ SAVED ACCOUNTS ");
 
-    createParameters();
-    console.log("############ CREATED PARAMS ");
+      createParameters();
+      console.log("############ CREATED PARAMS ");
 
-    catalogInstance = await deployer.deploy(Catalog, { from: accounts[1] });
-    console.log("############ CATALOG ");
+      catalogInstance = await deployer.deploy(Catalog, { from: accounts[1] });
+      console.log("############ CATALOG ");
 
-    await deployContents();
-    console.log("############ CONTENTS ");
+      await deployContents();
+      console.log("############ CONTENTS ");
 
-    await addContentsToCat();
-    console.log("############ ADD CONTENTS ");
+      await addContentsToCat();
+      console.log("############ ADD CONTENTS ");
 
-    await doSomeViews();
-    console.log("############ DO SOME VIEWS ");
+      await doSomeViews();
+      console.log("############ DO SOME VIEWS ");
 
-    await leaveRating();
-    console.log("############ LEAVE SOME VOTE ");
-  })
+      await leaveRating();
+      console.log("############ LEAVE SOME VOTE ");
+
+    } else if (network == "ropsten") {
+      catalogInstance = await deployer.deploy(Catalog);
+    }
+
+  });
 
   function createParameters() {
     t1 = web3.utils.fromAscii("Pretty Shining People");
