@@ -67,10 +67,6 @@ $(".butt_deploy_contract").click(async function () {
     } else {
         var position = await catalogInstance.position_content(t_byte);
         if (position == 0) {
-            $(".butt_deploy_contract").prop("disabled", true);
-            $(".butt_add_to_catalog").prop("disabled", false);
-            $(".butt_deploy_contract").toggleClass('btn-primary btn-secondary');
-            $(".butt_add_to_catalog").toggleClass('btn-primary btn-secondary');
             switch (g) {
                 case "Song":
                     new_content = await App.contracts.SongContent.new(catalogInstance.address, t_byte, web3.fromAscii(a), p, { from: App.account });
@@ -86,6 +82,10 @@ $(".butt_deploy_contract").click(async function () {
                     break;
             }
             addMoreInformation(g);
+            $(".butt_deploy_contract").prop("disabled", true);
+            $(".butt_add_to_catalog").prop("disabled", false);
+            $(".butt_deploy_contract").toggleClass('btn-primary btn-secondary');
+            $(".butt_add_to_catalog").toggleClass('btn-primary btn-secondary');
         } else {
             var al = DangerAlert("The title inserted is already present in the \
                 catalog, choose a unique name.");

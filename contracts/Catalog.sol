@@ -14,7 +14,7 @@ contract Catalog {
     BaseContent[] public contents_list; // list of all the contents in the catalog
     mapping (bytes32 => uint) public position_content; // map from title to position + 1
     uint private time_premium = 40000; // premium lasts approximately one week
-    uint public cost_premium = 0.15 ether; // premium costs about 20 euro
+    uint public cost_premium = 0.25 ether; // premium costs about 20 euro
     uint32 public min_v = 100; // number of views required before payment
     
     /* data about the accounts */
